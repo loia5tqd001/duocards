@@ -2,16 +2,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { FaVolumeUp, FaSyncAlt, FaArrowLeft, FaPlus } from 'react-icons/fa';
-
-const placeholderCard = {
-  english: 'compromise',
-  vietnamese: 'thỏa hiệp',
-  example: 'We argued for a long time but finally arrived at a compromise.',
-  definition:
-    'a settlement of differences in which each side gives up something it has previously demanded',
-  phonetic: '/ˈkɒm.prə.maɪz/',
-  partOfSpeech: 'noun, verb',
-};
+import { getDueCards, scheduleNext, updateCard } from '../lib/utils';
+import type { Card } from '../lib/utils';
 
 function speak(text: string) {
   if ('speechSynthesis' in window) {
@@ -24,25 +16,80 @@ function speak(text: string) {
 export default function ReviewCard() {
   const navigate = useNavigate();
   const [flipped, setFlipped] = useState(false);
-  const card = placeholderCard;
-  const [status, setStatus] = useState<'to-learn' | 'known' | 'learned'>(
-    'to-learn'
-  );
-  const [nextReview, setNextReview] = useState('in 10 min'); // Placeholder
+  const [dueCards, setDueCards] = useState<Card[]>(() => getDueCards());
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const card = dueCards[currentIdx];
+
+  // Helper to format next review time
+  function formatNextReview(ts: number) {
+    const diff = ts - Date.now();
+    if (diff < 60 * 1000) return 'in a few seconds';
+    if (diff < 60 * 60 * 1000) return `in ${Math.round(diff / 60000)} min`;
+    if (diff < 24 * 60 * 60 * 1000)
+      return `in ${Math.round(diff / 3600000)} hr`;
+    return `in ${Math.round(diff / (24 * 3600000))} days`;
+  }
 
   const handleFlip = () => setFlipped((f) => !f);
-  const handleCorrect = () => {
-    setStatus('known');
-    setNextReview('in 1 day');
-    // TODO: Update spaced repetition logic and load next card
+
+  const handleReview = (correct: boolean) => {
+    if (!card) return;
+    const updated = scheduleNext(card, correct);
+    updateCard(updated);
+    // Move to next card
+    const newDueCards = getDueCards();
+    setDueCards(newDueCards);
+    setCurrentIdx(0);
     setFlipped(false);
   };
-  const handleIncorrect = () => {
-    setStatus('to-learn');
-    setNextReview('in 10 min');
-    // TODO: Update spaced repetition logic and load next card
-    setFlipped(false);
-  };
+
+  if (!card) {
+    return (
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 400,
+          margin: '0 auto',
+          padding: 20,
+          height: '100vh',
+          background: '#f8fafc',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div
+          style={{
+            fontSize: 22,
+            fontWeight: 600,
+            color: '#888',
+            marginBottom: 18,
+          }}
+        >
+          No cards to review right now!
+        </div>
+        <Button
+          onClick={() => navigate('/add')}
+          style={{ fontSize: 18, borderRadius: 24, padding: '14px 32px' }}
+        >
+          Add Card
+        </Button>
+        <Button
+          variant='outline'
+          onClick={() => navigate('/')}
+          style={{
+            fontSize: 18,
+            borderRadius: 24,
+            padding: '14px 32px',
+            marginTop: 12,
+          }}
+        >
+          Back to Home
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -187,7 +234,7 @@ export default function ReviewCard() {
                     height: 40,
                     minWidth: 0,
                   }}
-                  onClick={() => speak(card.english)}
+                  onClick={() => speak(card.english || '')}
                   aria-label='Play word audio'
                 >
                   <FaVolumeUp size={20} />
@@ -280,7 +327,7 @@ export default function ReviewCard() {
                     height: 32,
                     minWidth: 0,
                   }}
-                  onClick={() => speak(card.example)}
+                  onClick={() => speak(card.example || '')}
                   aria-label='Play example audio'
                 >
                   <FaVolumeUp size={16} />
@@ -319,7 +366,7 @@ export default function ReviewCard() {
             pointerEvents: flipped ? 'auto' : 'none',
           }}
           variant='destructive'
-          onClick={handleIncorrect}
+          onClick={() => handleReview(false)}
           disabled={!flipped}
         >
           Incorrect
@@ -336,7 +383,7 @@ export default function ReviewCard() {
             opacity: flipped ? 1 : 0.5,
             pointerEvents: flipped ? 'auto' : 'none',
           }}
-          onClick={handleCorrect}
+          onClick={() => handleReview(true)}
           disabled={!flipped}
         >
           Correct
@@ -354,7 +401,7 @@ export default function ReviewCard() {
       >
         Status:{' '}
         <span style={{ color: '#222', fontWeight: 700 }}>
-          {status.replace('-', ' ')}
+          {card.status.replace('-', ' ')}
         </span>
       </div>
       <div
@@ -366,7 +413,9 @@ export default function ReviewCard() {
         }}
       >
         Next review:{' '}
-        <span style={{ color: '#222', fontWeight: 700 }}>{nextReview}</span>
+        <span style={{ color: '#222', fontWeight: 700 }}>
+          {formatNextReview(card.nextReview)}
+        </span>
       </div>
     </div>
   );

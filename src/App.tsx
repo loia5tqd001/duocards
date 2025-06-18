@@ -11,6 +11,12 @@ import {
 } from 'react-icons/fa';
 import { useState, useEffect, useRef } from 'react';
 import ReviewCard from './screens/ReviewCard';
+import {
+  addCard as addCardToStorage,
+  getStats,
+  getAllCards,
+} from './lib/utils';
+import type { Card } from './lib/utils';
 
 type Info = {
   word: string;
@@ -66,25 +72,41 @@ function PageContainer({ children }: { children: React.ReactNode }) {
 
 function Home() {
   const navigate = useNavigate();
-  // Placeholder stats
-  const stats = [
+  const [stats, setStats] = useState(() => getStats());
+  const [cards, setCards] = useState<Card[]>(() => getAllCards());
+
+  useEffect(() => {
+    const onStorage = () => {
+      setStats(getStats());
+      setCards(getAllCards());
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  useEffect(() => {
+    setStats(getStats());
+    setCards(getAllCards());
+  }, []);
+
+  const statList = [
     {
       label: 'To Learn',
-      value: 1,
+      value: stats.toLearn,
       color: '#22c55e',
       icon: <FaBook size={24} color='#22c55e' />,
       desc: 'Words you have yet to study.',
     },
     {
       label: 'Known',
-      value: 0,
+      value: stats.known,
       color: '#2563eb',
       icon: <FaCheckCircle size={24} color='#2563eb' />,
       desc: 'Short-term memory.',
     },
     {
       label: 'Learned',
-      value: 0,
+      value: stats.learned,
       color: '#eab308',
       icon: <FaLightbulb size={24} color='#eab308' />,
       desc: 'Long-term memory.',
@@ -112,7 +134,7 @@ function Home() {
           marginBottom: 32,
         }}
       >
-        {stats.map((s) => (
+        {statList.map((s) => (
           <div
             key={s.label}
             style={{
@@ -188,6 +210,69 @@ function Home() {
           Add Card
         </Button>
       </div>
+      {/* Card List */}
+      <div style={{ marginTop: 36 }}>
+        <h2
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            marginBottom: 10,
+            textAlign: 'left',
+          }}
+        >
+          All Cards
+        </h2>
+        {cards.length === 0 ? (
+          <div style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>
+            No cards yet.
+          </div>
+        ) : (
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {cards.map((card) => (
+              <li
+                key={card.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px 0',
+                  borderBottom: '1px solid #f0f0f0',
+                  fontSize: 16,
+                }}
+              >
+                <span style={{ fontWeight: 600 }}>{card.english}</span>
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color:
+                      card.status === 'to-learn'
+                        ? '#22c55e'
+                        : card.status === 'known'
+                        ? '#2563eb'
+                        : '#eab308',
+                    background:
+                      card.status === 'to-learn'
+                        ? '#e7fbe9'
+                        : card.status === 'known'
+                        ? '#e7f0fb'
+                        : '#fdf6e7',
+                    borderRadius: 8,
+                    padding: '2px 10px',
+                    marginLeft: 8,
+                  }}
+                >
+                  {card.status === 'to-learn'
+                    ? 'To Learn'
+                    : card.status === 'known'
+                    ? 'Known'
+                    : 'Learned'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </PageContainer>
   );
 }
@@ -245,13 +330,22 @@ function AddCard() {
   };
 
   const handleAdd = () => {
-    // TODO: Save card to local storage or backend
+    if (!english || !vietnamese) return;
+    addCardToStorage({
+      english,
+      vietnamese,
+      example,
+      definition: info?.definitions?.[0] || '',
+      phonetic: info?.phonetic || '',
+      partOfSpeech: info?.partOfSpeech || '',
+    });
     setAdded(true);
     setEnglish('');
     setVietnamese('');
     setExample('');
     setInfo(null);
     setTimeout(() => setAdded(false), 1200);
+    window.dispatchEvent(new Event('storage')); // trigger Home stats update
   };
 
   return (
