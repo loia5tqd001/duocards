@@ -303,25 +303,28 @@ function AddCard() {
 
   // Placeholder: fetch Cambridge info and auto-translate
   const fetchInfo = async (word: string) => {
-    // TODO: Integrate Cambridge API and translation
-    setTimeout(() => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `http://localhost:3001/api/cambridge/${encodeURIComponent(word)}`
+      );
+      if (!res.ok) throw new Error('Not found');
+      const data = await res.json();
       setInfo({
-        word,
-        phonetic: '/ˈkɒm.prə.maɪz/',
-        audio: '',
-        partOfSpeech: 'noun, verb',
-        definitions: [
-          'a settlement of differences in which each side gives up something it has previously demanded',
-          'to accept less than you originally wanted in order to reach an agreement',
-        ],
-        examples: [
-          'We argued for a long time but finally arrived at a compromise.',
-          'The union is prepared to compromise with the management on the pay issue.',
-        ],
+        word: data.word,
+        phonetic: data.phonetic,
+        audio: '', // You can extend the proxy to return audio URLs if needed
+        partOfSpeech: data.partOfSpeech,
+        definitions: data.definitions,
+        examples: data.examples,
       });
-      setVietnamese('thỏa hiệp'); // Placeholder translation
-      setLoading(false);
-    }, 800);
+      setVietnamese(data.mainVietnamese || '');
+    } catch (e) {
+      console.error(e);
+      setInfo(null);
+      setVietnamese('');
+    }
+    setLoading(false);
   };
 
   const handleEnglishChange = (e: React.ChangeEvent<HTMLInputElement>) => {
