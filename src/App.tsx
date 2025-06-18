@@ -10,6 +10,7 @@ import {
   FaPlus,
 } from 'react-icons/fa';
 import { useState, useEffect, useRef } from 'react';
+import ReviewCard from './screens/ReviewCard';
 
 type Info = {
   word: string;
@@ -388,15 +389,6 @@ function AddCard() {
           </ul>
         </div>
       )}
-    </PageContainer>
-  );
-}
-
-function ReviewCard() {
-  return (
-    <PageContainer>
-      <h1>Review Card</h1>
-      <p>Review UI coming soon...</p>
     </PageContainer>
   );
 }
