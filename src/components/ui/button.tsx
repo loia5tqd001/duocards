@@ -35,25 +35,34 @@ const buttonVariants = cva(
   }
 );
 
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}: React.ComponentProps<'button'> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-  }) {
+const Button = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<'button'> &
+    VariantProps<typeof buttonVariants> & {
+      asChild?: boolean;
+      disabled?: boolean;
+    }
+>(({ className, variant, size, asChild = false, disabled, ...props }, ref) => {
   const Comp = asChild ? Slot : 'button';
-
+  // Merge custom disabled styles with any passed style prop
+  const customDisabledStyle = disabled
+    ? {
+        pointerEvents: 'none' as React.CSSProperties['pointerEvents'],
+        opacity: 0.5,
+        ...(props.style || {}),
+      }
+    : props.style;
   return (
     <Comp
       data-slot='button'
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={disabled}
+      style={customDisabledStyle}
       {...props}
+      {...(!asChild && { ref })}
     />
   );
-}
+});
+Button.displayName = 'Button';
 
 export { Button, buttonVariants };

@@ -238,16 +238,6 @@ export default function ReviewCard() {
               <div
                 style={{
                   fontSize: 20,
-                  fontWeight: 600,
-                  marginBottom: 10,
-                  textAlign: 'center',
-                }}
-              >
-                {card.definition}
-              </div>
-              <div
-                style={{
-                  fontSize: 18,
                   color: '#22c55e',
                   fontWeight: 600,
                   marginBottom: 10,
@@ -256,6 +246,17 @@ export default function ReviewCard() {
               >
                 {card.vietnamese}
               </div>
+              <div
+                style={{
+                  fontSize: 16,
+                  fontWeight: 600,
+                  marginBottom: 10,
+                  textAlign: 'center',
+                }}
+              >
+                {card.definition}
+              </div>
+
               <div
                 style={{
                   fontSize: 15,
@@ -309,9 +310,17 @@ export default function ReviewCard() {
         style={{ width: '100%', display: 'flex', gap: 14, marginBottom: 28 }}
       >
         <Button
-          style={{ flex: 1, fontSize: 18, padding: '14px 0', borderRadius: 24 }}
+          style={{
+            flex: 1,
+            fontSize: 18,
+            padding: '14px 0',
+            borderRadius: 24,
+            opacity: flipped ? 1 : 0.5,
+            pointerEvents: flipped ? 'auto' : 'none',
+          }}
           variant='destructive'
           onClick={handleIncorrect}
+          disabled={!flipped}
         >
           Incorrect
         </Button>
@@ -324,8 +333,11 @@ export default function ReviewCard() {
             background: '#22c55e',
             color: '#fff',
             border: 'none',
+            opacity: flipped ? 1 : 0.5,
+            pointerEvents: flipped ? 'auto' : 'none',
           }}
           onClick={handleCorrect}
+          disabled={!flipped}
         >
           Correct
         </Button>
