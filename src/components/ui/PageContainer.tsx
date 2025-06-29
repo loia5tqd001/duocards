@@ -14,7 +14,7 @@ export default function PageContainer({
   children,
 }: PageContainerProps) {
   return (
-    <div className='w-full max-w-sm mx-auto p-4 h-screen relative flex flex-col'>
+    <div className='w-full max-w-sm mx-auto p-4 h-dvh relative flex flex-col'>
       {/* Header */}
       <div className='w-full flex items-center justify-between mb-6 min-h-[48px]'>
         <div className='w-10 h-10 flex items-center justify-start'>
