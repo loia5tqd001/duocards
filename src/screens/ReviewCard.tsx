@@ -119,6 +119,8 @@ export default function ReviewCard() {
   // Keyboard navigation
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      // Ignore if any modifier key is held
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
       if (!card) return;
       if (!flipped) {
         // On front: any key flips
