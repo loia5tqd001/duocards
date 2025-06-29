@@ -432,15 +432,9 @@ export default function ReviewCard() {
 
         {/* 3D Flip Card with swipe */}
         <div
-          ref={cardRef}
-          className={`w-full relative flex items-center justify-center max-w-full select-none ${
-            shouldAnimateFlip ? 'transition-transform duration-400' : ''
-          }`}
+          className='w-full relative flex items-center justify-center'
           style={{
-            transformStyle: 'preserve-3d',
-            transform: `translateX(${dragX}px) rotateY(${
-              flipped ? 180 : 0
-            }deg) rotateZ(${rotation}deg)`,
+            transform: `translateX(${dragX}px) rotateZ(${rotation}deg)`,
             opacity: opacity,
             transition: isDragging
               ? 'none'
@@ -448,24 +442,38 @@ export default function ReviewCard() {
             maxWidth: 360,
             minHeight: 320,
             maxHeight: 420,
-            cursor: flipped && !isDragging ? 'grab' : 'pointer',
           }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
         >
-          {/* Front Side */}
-          <ReviewCardFront card={card} onFlip={handleFlip} speak={speak} />
-          {/* Back Side */}
-          <ReviewCardBack
-            card={card}
-            speak={speak}
-            onEdit={() => navigate(`/edit/${card.id}`)}
-          />
+          <div
+            ref={cardRef}
+            className={`w-full relative flex items-center justify-center max-w-full select-none ${
+              shouldAnimateFlip ? 'transition-transform duration-400' : ''
+            }`}
+            style={{
+              transformStyle: 'preserve-3d',
+              transform: `rotateY(${flipped ? 180 : 0}deg)`,
+              maxWidth: 360,
+              minHeight: 320,
+              maxHeight: 420,
+              cursor: flipped && !isDragging ? 'grab' : 'pointer',
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+          >
+            {/* Front Side */}
+            <ReviewCardFront card={card} onFlip={handleFlip} speak={speak} />
+            {/* Back Side */}
+            <ReviewCardBack
+              card={card}
+              speak={speak}
+              onEdit={() => navigate(`/edit/${card.id}`)}
+            />
+          </div>
         </div>
       </div>
 
