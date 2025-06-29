@@ -20,7 +20,7 @@ export default function PageContainer({
 }: PageContainerProps) {
   const navigate = useNavigate();
   return (
-    <div className='w-full max-w-sm mx-auto p-4 h-screen bg-slate-50 relative flex flex-col'>
+    <div className='w-full max-w-sm mx-auto p-4 h-screen relative flex flex-col'>
       {/* Header */}
       <div className='w-full flex items-center justify-between mb-6 min-h-[48px]'>
         {showBack ? (
