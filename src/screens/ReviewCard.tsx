@@ -27,7 +27,7 @@ function ReviewCardFront({
         <div className='text-2xl font-bold mb-2 text-center tracking-tight'>
           {card.english}
         </div>
-        <div className='text-slate-400 text-lg mb-2 font-medium flex items-center justify-center'>
+        <div className='text-slate-400 text-md mb-2 font-medium flex items-center justify-center'>
           {card.phonetic}
           <VolumeButton
             onClick={() => {
@@ -68,7 +68,7 @@ function ReviewCardBack({
           {card.english}
         </div>
         {/* IPA + speaker */}
-        <div className='text-slate-400 text-lg mb-2 font-medium flex items-center justify-center'>
+        <div className='text-slate-400 text-md mb-2 font-medium flex items-center justify-center'>
           {card.phonetic}
           <VolumeButton
             onClick={() => {
@@ -115,6 +115,31 @@ export default function ReviewCard() {
 
   // Track if we should auto play audio (only when a new card is shown, not when flipping)
   const [shouldAutoPlay, setShouldAutoPlay] = useState(true);
+
+  // Keyboard navigation
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (!card) return;
+      if (!flipped) {
+        // On front: any key flips
+        setFlipped(true);
+        setShouldAutoPlay(false);
+      } else {
+        // On back
+        if (e.key === 'ArrowLeft') {
+          handleReview(false);
+        } else if (e.key === 'ArrowRight') {
+          handleReview(true);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          setFlipped(false);
+          setShouldAutoPlay(false);
+        }
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flipped, card]);
 
   // Helper to format next review time
   function formatNextReview(ts: number) {
@@ -215,23 +240,23 @@ export default function ReviewCard() {
       {/* Action Buttons */}
       <div className='w-full flex gap-3 mb-7'>
         <Button
-          className={`flex-1 text-base py-3 rounded-xl hover:bg-red-700 focus:bg-red-700 focus-visible:bg-red-700 ${
+          className={`flex-1 text-base py-3 rounded-xl hover:bg-red-700 focus:bg-red-700 focus-visible:bg-red-700 flex items-center justify-center ${
             flipped ? '' : 'opacity-50 pointer-events-none'
           }`}
           variant='destructive'
           onClick={() => handleReview(false)}
           disabled={!flipped}
         >
-          Incorrect
+          ⬅️ Incorrect
         </Button>
         <Button
-          className={`flex-1 text-base py-3 rounded-xl bg-green-500 text-white border-none hover:bg-green-600 focus:bg-green-600 focus-visible:bg-green-600 ${
+          className={`flex-1 text-base py-3 rounded-xl bg-green-500 text-white border-none hover:bg-green-600 focus:bg-green-600 focus-visible:bg-green-600 flex items-center justify-center ${
             flipped ? '' : 'opacity-50 pointer-events-none'
           }`}
           onClick={() => handleReview(true)}
           disabled={!flipped}
         >
-          Correct
+          Correct ➡️
         </Button>
       </div>
       {/* Status */}

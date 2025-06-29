@@ -64,7 +64,7 @@ app.get('/api/cambridge/:word', async (req, res) => {
       definitions,
       vietnameseTranslations,
       mainVietnamese,
-      examples,
+      examples: examples.slice(0, 10),
       debug: vietnameseTranslations,
     });
   } catch (err) {
