@@ -10,25 +10,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import type { Card } from '../lib/utils';
 import { getAllCards, getStats } from '../lib/utils';
-
-function PageContainer({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        width: '100%',
-        maxWidth: 400,
-        margin: '0 auto',
-        padding: 20,
-        height: '100vh',
-        background: '#f8fafc',
-        position: 'relative',
-      }}
-    >
-      {/* Back button handled in App layout */}
-      {children}
-    </div>
-  );
-}
+import PageContainer from '@/components/ui/PageContainer';
 
 function Home() {
   const navigate = useNavigate();
@@ -53,104 +35,48 @@ function Home() {
     {
       label: 'To Learn',
       value: stats.toLearn,
-      color: '#22c55e',
+      color: 'text-green-500',
       icon: <FaBook size={24} color='#22c55e' />,
       desc: 'Words you have yet to study.',
     },
     {
       label: 'Known',
       value: stats.known,
-      color: '#2563eb',
+      color: 'text-blue-600',
       icon: <FaCheckCircle size={24} color='#2563eb' />,
       desc: 'Short-term memory.',
     },
     {
       label: 'Learned',
       value: stats.learned,
-      color: '#eab308',
+      color: 'text-yellow-400',
       icon: <FaLightbulb size={24} color='#eab308' />,
       desc: 'Long-term memory.',
     },
   ];
 
   return (
-    <PageContainer>
-      <h1
-        style={{
-          fontWeight: 700,
-          fontSize: 28,
-          marginBottom: 28,
-          textAlign: 'center',
-          letterSpacing: -1,
-        }}
-      >
-        📚 Duocards
-      </h1>
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          justifyContent: 'space-between',
-          marginBottom: 32,
-        }}
-      >
+    <PageContainer title='📚 Duocards'>
+      <div className='flex gap-2 justify-between mb-6'>
         {statList.map((s) => (
           <div
             key={s.label}
-            style={{
-              flex: 1,
-              background: '#fff',
-              borderRadius: 16,
-              boxShadow: '0 1px 4px #0001',
-              padding: 12,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              minWidth: 0,
-            }}
+            className='flex-1 bg-white rounded-xl shadow p-3 flex flex-col items-center min-w-0'
           >
             {s.icon}
-            <div
-              style={{
-                fontSize: 22,
-                fontWeight: 600,
-                color: s.color,
-                margin: '8px 0 2px',
-              }}
-            >
+            <div className={`text-lg font-semibold ${s.color} my-1`}>
               {s.value}
             </div>
-            <div style={{ fontSize: 14, color: '#222', fontWeight: 500 }}>
-              {s.label}
-            </div>
-            <div
-              style={{
-                fontSize: 11,
-                color: '#888',
-                marginTop: 2,
-                textAlign: 'center',
-              }}
-            >
+            <div className='text-sm text-slate-900 font-medium'>{s.label}</div>
+            <div className='text-xs text-slate-400 mt-0.5 text-center'>
               {s.desc}
             </div>
           </div>
         ))}
       </div>
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          flexDirection: 'column',
-          width: '100%',
-        }}
-      >
+      <div className='flex flex-col gap-2 w-full'>
         <Button
-          style={{
-            width: '100%',
-            fontSize: 18,
-            padding: '14px 0',
-            borderRadius: 24,
-          }}
+          className='w-full text-base py-3 rounded-xl'
           onClick={() => navigate('/review')}
         >
           <FaPlay />
@@ -158,12 +84,7 @@ function Home() {
         </Button>
         <Button
           variant='outline'
-          style={{
-            width: '100%',
-            fontSize: 18,
-            padding: '14px 0',
-            borderRadius: 24,
-          }}
+          className='w-full text-base py-3 rounded-xl'
           onClick={() => navigate('/add')}
         >
           <FaPlus />
@@ -171,56 +92,29 @@ function Home() {
         </Button>
       </div>
       {/* Card List */}
-      <div style={{ marginTop: 36 }}>
-        <h2
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            marginBottom: 10,
-            textAlign: 'left',
-          }}
-        >
-          All Cards
-        </h2>
+      <div className='mt-8'>
+        <h2 className='text-lg font-bold mb-2 text-left'>All Cards</h2>
         {cards.length === 0 ? (
-          <div style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>
+          <div className='text-slate-400 text-sm text-center'>
             No cards yet.
           </div>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul className='list-none p-0 m-0'>
             {cards.map((card) => (
               <li
                 key={card.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '10px 0',
-                  borderBottom: '1px solid #f0f0f0',
-                  fontSize: 16,
-                }}
+                className='flex justify-between items-center py-2 border-b border-slate-100 text-base'
               >
-                <span style={{ fontWeight: 600 }}>{card.english}</span>
+                <span className='font-semibold'>{card.english}</span>
                 <span
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color:
-                      card.status === 'to-learn'
-                        ? '#22c55e'
-                        : card.status === 'known'
-                        ? '#2563eb'
-                        : '#eab308',
-                    background:
-                      card.status === 'to-learn'
-                        ? '#e7fbe9'
-                        : card.status === 'known'
-                        ? '#e7f0fb'
-                        : '#fdf6e7',
-                    borderRadius: 8,
-                    padding: '2px 10px',
-                    marginLeft: 8,
-                  }}
+                  className={
+                    `text-xs font-medium rounded-lg px-2 py-0.5 ml-2 ` +
+                    (card.status === 'to-learn'
+                      ? 'text-green-500 bg-green-50'
+                      : card.status === 'known'
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-yellow-500 bg-yellow-50')
+                  }
                 >
                   {card.status === 'to-learn'
                     ? 'To Learn'

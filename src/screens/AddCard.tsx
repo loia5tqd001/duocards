@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { addCard as addCardToStorage } from '../lib/utils';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { FaArrowLeft } from 'react-icons/fa';
+import PageContainer from '@/components/ui/PageContainer';
 
 // Info type for Cambridge info
 type Info = {
@@ -13,49 +12,6 @@ type Info = {
   definitions: string[];
   examples: string[];
 };
-
-function PageContainer({ children }: { children: React.ReactNode }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isHome = location.pathname === '/';
-
-  return (
-    <div
-      style={{
-        width: '100%',
-        maxWidth: 400,
-        margin: '0 auto',
-        padding: 20,
-        height: '100vh',
-        background: '#f8fafc',
-        position: 'relative',
-      }}
-    >
-      {!isHome && (
-        <Button
-          variant='outline'
-          size='icon'
-          style={{
-            position: 'absolute',
-            top: 10,
-            left: 10,
-            zIndex: 10,
-            borderRadius: 8,
-            width: 40,
-            height: 40,
-            padding: 0,
-            minWidth: 0,
-          }}
-          onClick={() => navigate('/')}
-          aria-label='Back to Home'
-        >
-          <FaArrowLeft size={20} />
-        </Button>
-      )}
-      {children}
-    </div>
-  );
-}
 
 export default function AddCard() {
   const [english, setEnglish] = useState('');
@@ -132,13 +88,10 @@ export default function AddCard() {
   };
 
   return (
-    <PageContainer>
-      <h1 style={{ fontWeight: 700, fontSize: 22, marginBottom: 18 }}>
-        Add New Card
-      </h1>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <PageContainer title='📝 Add New Card' showBack={true}>
+      <div className='flex flex-col gap-4'>
         <div>
-          <label htmlFor='english' style={{ fontWeight: 500, fontSize: 15 }}>
+          <label htmlFor='english' className='font-medium text-sm'>
             English
           </label>
           <input
@@ -147,19 +100,12 @@ export default function AddCard() {
             value={english}
             onChange={handleEnglishChange}
             placeholder='Enter English word'
-            style={{
-              width: '100%',
-              padding: 12,
-              borderRadius: 8,
-              border: '1px solid #e5e7eb',
-              marginTop: 4,
-              fontSize: 16,
-            }}
+            className='w-full p-3 rounded-lg border border-slate-200 mt-1 text-base focus:outline-none focus:ring-2 focus:ring-primary'
             autoFocus
           />
         </div>
         <div>
-          <label htmlFor='vietnamese' style={{ fontWeight: 500, fontSize: 15 }}>
+          <label htmlFor='vietnamese' className='font-medium text-sm'>
             Vietnamese
           </label>
           <input
@@ -168,18 +114,11 @@ export default function AddCard() {
             value={vietnamese}
             onChange={(e) => setVietnamese(e.target.value)}
             placeholder='Vietnamese translation'
-            style={{
-              width: '100%',
-              padding: 12,
-              borderRadius: 8,
-              border: '1px solid #e5e7eb',
-              marginTop: 4,
-              fontSize: 16,
-            }}
+            className='w-full p-3 rounded-lg border border-slate-200 mt-1 text-base focus:outline-none focus:ring-2 focus:ring-primary'
           />
         </div>
         <div>
-          <label htmlFor='example' style={{ fontWeight: 500, fontSize: 15 }}>
+          <label htmlFor='example' className='font-medium text-sm'>
             Example (optional)
           </label>
           <input
@@ -188,78 +127,41 @@ export default function AddCard() {
             value={example}
             onChange={(e) => setExample(e.target.value)}
             placeholder='Example sentence (English)'
-            style={{
-              width: '100%',
-              padding: 12,
-              borderRadius: 8,
-              border: '1px solid #e5e7eb',
-              marginTop: 4,
-              fontSize: 16,
-            }}
+            className='w-full p-3 rounded-lg border border-slate-200 mt-1 text-base focus:outline-none focus:ring-2 focus:ring-primary'
           />
         </div>
         <Button
-          style={{
-            width: '100%',
-            fontSize: 17,
-            padding: '13px 0',
-            borderRadius: 16,
-            marginTop: 8,
-          }}
+          className='w-full text-base py-3 rounded-xl mt-2'
           onClick={handleAdd}
           disabled={!english || !vietnamese || loading}
         >
           {loading ? 'Loading...' : 'Add Card'}
         </Button>
         {added && (
-          <div
-            style={{ color: '#22c55e', textAlign: 'center', fontWeight: 500 }}
-          >
-            Added!
-          </div>
+          <div className='text-green-500 text-center font-medium'>Added!</div>
         )}
       </div>
       {/* Cambridge Info Card */}
       {info && (
-        <div
-          style={{
-            marginTop: 28,
-            background: '#fff',
-            borderRadius: 14,
-            boxShadow: '0 1px 4px #0001',
-            padding: 18,
-          }}
-        >
-          <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 4 }}>
+        <div className='mt-6 bg-white rounded-lg shadow p-4'>
+          <div className='font-semibold text-lg mb-1'>
             {info.word}{' '}
-            <span style={{ color: '#888', fontSize: 15 }}>{info.phonetic}</span>
+            <span className='text-slate-400 text-sm'>{info.phonetic}</span>
           </div>
-          <div
-            style={{
-              color: '#2563eb',
-              fontWeight: 500,
-              fontSize: 14,
-              marginBottom: 6,
-            }}
-          >
+          <div className='text-blue-600 font-medium text-xs mb-1'>
             {info.partOfSpeech}
           </div>
-          <ul style={{ paddingLeft: 18, marginBottom: 8 }}>
+          <ul className='pl-4 mb-2'>
             {info.definitions.map((d: string, i: number) => (
-              <li key={i} style={{ fontSize: 15, marginBottom: 2 }}>
+              <li key={i} className='text-sm mb-1'>
                 {d}
               </li>
             ))}
           </ul>
-          <div style={{ fontSize: 13, color: '#666', marginBottom: 4 }}>
-            Examples:
-          </div>
-          <ul style={{ paddingLeft: 18 }}>
+          <div className='text-xs text-slate-500 mb-1'>Examples:</div>
+          <ul className='pl-4'>
             {info.examples.map((ex: string, i: number) => (
-              <li
-                key={i}
-                style={{ fontSize: 14, color: '#444', marginBottom: 2 }}
-              >
+              <li key={i} className='text-xs text-slate-700 mb-1'>
                 {ex}
               </li>
             ))}

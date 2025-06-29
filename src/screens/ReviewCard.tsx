@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { FaVolumeUp, FaSyncAlt, FaArrowLeft, FaPlus } from 'react-icons/fa';
+import { FaVolumeUp, FaSyncAlt, FaPlus } from 'react-icons/fa';
 import { getDueCards, scheduleNext, updateCard } from '../lib/utils';
 import type { Card } from '../lib/utils';
+import PageContainer from '@/components/ui/PageContainer';
 
 function speak(text: string) {
   if ('speechSynthesis' in window) {
@@ -45,195 +46,78 @@ export default function ReviewCard() {
 
   if (!card) {
     return (
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 400,
-          margin: '0 auto',
-          padding: 20,
-          height: '100vh',
-          background: '#f8fafc',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <div
-          style={{
-            fontSize: 22,
-            fontWeight: 600,
-            color: '#888',
-            marginBottom: 18,
-          }}
-        >
-          No cards to review right now!
+      <PageContainer title='📖 Review Cards' showBack={true}>
+        <div className='flex flex-col items-center justify-center flex-1'>
+          <div className='text-xl font-semibold text-slate-400 mb-4'>
+            No cards to review right now!
+          </div>
+          <Button
+            onClick={() => navigate('/add')}
+            className='text-base rounded-xl py-3 px-8'
+          >
+            Add Card
+          </Button>
+          <Button
+            variant='outline'
+            onClick={() => navigate('/')}
+            className='text-base rounded-xl py-3 px-8 mt-3'
+          >
+            Back to Home
+          </Button>
         </div>
-        <Button
-          onClick={() => navigate('/add')}
-          style={{ fontSize: 18, borderRadius: 24, padding: '14px 32px' }}
-        >
-          Add Card
-        </Button>
-        <Button
-          variant='outline'
-          onClick={() => navigate('/')}
-          style={{
-            fontSize: 18,
-            borderRadius: 24,
-            padding: '14px 32px',
-            marginTop: 12,
-          }}
-        >
-          Back to Home
-        </Button>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div
-      style={{
-        width: '100%',
-        maxWidth: 400,
-        margin: '0 auto',
-        padding: 20,
-        minHeight: '100vh',
-        height: '100vh',
-        background: '#f8fafc',
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-      }}
-    >
-      {/* Top Navigation */}
-      <div
-        style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 24,
-        }}
-      >
+    <PageContainer
+      title='📖 Review Cards'
+      showBack={true}
+      rightButton={
         <Button
           variant='outline'
           size='icon'
-          style={{ borderRadius: 12, width: 44, height: 44, minWidth: 0 }}
-          onClick={() => navigate('/')}
-          aria-label='Back to Home'
-        >
-          <FaArrowLeft size={20} />
-        </Button>
-        <Button
-          variant='outline'
-          size='icon'
-          style={{ borderRadius: 12, width: 44, height: 44, minWidth: 0 }}
+          className='rounded-lg w-10 h-10 min-w-0'
           onClick={() => navigate('/add')}
           aria-label='Add Card'
         >
           <FaPlus size={20} />
         </Button>
-      </div>
+      }
+    >
       {/* 3D Flip Card */}
-      <div
-        style={{
-          width: '100%',
-          flex: '1 1 auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          perspective: 1000,
-          marginBottom: 32,
-        }}
-      >
+      <div className='w-full flex items-center justify-center mb-8'>
         <div
+          className='w-full relative flex items-center justify-center transition-transform duration-400 max-w-full'
           style={{
-            width: '100%',
-            height: '100%',
-            position: 'relative',
-            transition: 'transform 0.4s',
             transformStyle: 'preserve-3d',
             transform: flipped ? 'rotateY(180deg)' : 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            maxWidth: 360,
+            minHeight: 320,
+            maxHeight: 420,
           }}
         >
           {/* Front Side */}
           <div
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              top: 0,
-              left: 0,
-              background: '#fff',
-              borderRadius: 24,
-              boxShadow: '0 1px 8px #0001',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 28,
-              backfaceVisibility: 'hidden',
-              overflowY: 'auto',
-              maxHeight: '100%',
-            }}
+            className='absolute w-full h-full top-0 left-0 bg-white rounded-xl shadow flex flex-col items-center justify-center p-6 backface-hidden overflow-y-auto max-h-full'
+            style={{ backfaceVisibility: 'hidden' }}
           >
-            <style>{`
-              .review-card::-webkit-scrollbar { display: none; }
-            `}</style>
-            <div className='review-card' style={{ width: '100%' }}>
-              <div
-                style={{
-                  fontSize: 32,
-                  fontWeight: 700,
-                  marginBottom: 8,
-                  textAlign: 'center',
-                  letterSpacing: -1,
-                }}
-              >
+            <style>{`.review-card::-webkit-scrollbar { display: none; }`}</style>
+            <div className='review-card w-full'>
+              <div className='text-2xl font-bold mb-2 text-center tracking-tight'>
                 {card.english}
               </div>
-              <div
-                style={{
-                  color: '#888',
-                  fontSize: 18,
-                  marginBottom: 8,
-                  fontWeight: 500,
-                }}
-              >
+              <div className='text-slate-400 text-lg mb-2 font-medium'>
                 {card.phonetic}
               </div>
-              <div
-                style={{
-                  color: '#2563eb',
-                  fontWeight: 600,
-                  fontSize: 17,
-                  marginBottom: 18,
-                }}
-              >
+              <div className='text-blue-600 font-semibold text-base mb-4'>
                 {card.partOfSpeech}
               </div>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: 16,
-                  marginBottom: 8,
-                  justifyContent: 'center',
-                }}
-              >
+              <div className='flex gap-4 mb-2 justify-center'>
                 <Button
                   variant='secondary'
                   size='icon'
-                  style={{
-                    borderRadius: 16,
-                    width: 40,
-                    height: 40,
-                    minWidth: 0,
-                  }}
+                  className='rounded-lg w-10 h-10 min-w-0'
                   onClick={() => speak(card.english || '')}
                   aria-label='Play word audio'
                 >
@@ -242,12 +126,7 @@ export default function ReviewCard() {
                 <Button
                   variant='outline'
                   size='icon'
-                  style={{
-                    borderRadius: 16,
-                    width: 40,
-                    height: 40,
-                    minWidth: 0,
-                  }}
+                  className='rounded-lg w-10 h-10 min-w-0'
                   onClick={handleFlip}
                   aria-label='Flip card'
                 >
@@ -258,75 +137,26 @@ export default function ReviewCard() {
           </div>
           {/* Back Side */}
           <div
+            className='absolute w-full h-full top-0 left-0 bg-white rounded-xl shadow flex flex-col items-center justify-center p-6 backface-hidden overflow-y-auto max-h-full'
             style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              top: 0,
-              left: 0,
-              background: '#fff',
-              borderRadius: 24,
-              boxShadow: '0 1px 8px #0001',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 28,
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
-              overflowY: 'auto',
-              maxHeight: '100%',
             }}
           >
-            <style>{`
-              .review-card::-webkit-scrollbar { display: none; }
-            `}</style>
-            <div className='review-card' style={{ width: '100%' }}>
-              <div
-                style={{
-                  fontSize: 20,
-                  color: '#22c55e',
-                  fontWeight: 600,
-                  marginBottom: 10,
-                  textAlign: 'center',
-                }}
-              >
+            <style>{`.review-card::-webkit-scrollbar { display: none; }`}</style>
+            <div className='review-card w-full'>
+              <div className='text-lg text-green-500 font-semibold mb-2 text-center'>
                 {card.vietnamese}
               </div>
-              <div
-                style={{
-                  fontSize: 16,
-                  fontWeight: 600,
-                  marginBottom: 10,
-                  textAlign: 'center',
-                }}
-              >
+              <div className='text-base font-semibold mb-2 text-center'>
                 {card.definition}
               </div>
-
-              <div
-                style={{
-                  fontSize: 15,
-                  color: '#444',
-                  marginBottom: 12,
-                  textAlign: 'center',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <span style={{ marginRight: 6 }}>Example:</span> {card.example}
+              <div className='text-sm text-slate-700 mb-3 text-center flex items-center justify-center flex-wrap'>
+                <span className='mr-2'>Example:</span> {card.example}
                 <Button
                   variant='ghost'
                   size='icon'
-                  style={{
-                    marginLeft: 8,
-                    borderRadius: 16,
-                    width: 32,
-                    height: 32,
-                    minWidth: 0,
-                  }}
+                  className='ml-2 rounded-lg w-8 h-8 min-w-0'
                   onClick={() => speak(card.example || '')}
                   aria-label='Play example audio'
                 >
@@ -336,13 +166,7 @@ export default function ReviewCard() {
               <Button
                 variant='outline'
                 size='icon'
-                style={{
-                  borderRadius: 16,
-                  width: 40,
-                  height: 40,
-                  minWidth: 0,
-                  marginTop: 8,
-                }}
+                className='rounded-lg w-10 h-10 min-w-0 mt-2'
                 onClick={handleFlip}
                 aria-label='Flip card back'
               >
@@ -353,18 +177,11 @@ export default function ReviewCard() {
         </div>
       </div>
       {/* Action Buttons */}
-      <div
-        style={{ width: '100%', display: 'flex', gap: 14, marginBottom: 28 }}
-      >
+      <div className='w-full flex gap-3 mb-7'>
         <Button
-          style={{
-            flex: 1,
-            fontSize: 18,
-            padding: '14px 0',
-            borderRadius: 24,
-            opacity: flipped ? 1 : 0.5,
-            pointerEvents: flipped ? 'auto' : 'none',
-          }}
+          className={`flex-1 text-base py-3 rounded-xl ${
+            flipped ? '' : 'opacity-50 pointer-events-none'
+          }`}
           variant='destructive'
           onClick={() => handleReview(false)}
           disabled={!flipped}
@@ -372,17 +189,9 @@ export default function ReviewCard() {
           Incorrect
         </Button>
         <Button
-          style={{
-            flex: 1,
-            fontSize: 18,
-            padding: '14px 0',
-            borderRadius: 24,
-            background: '#22c55e',
-            color: '#fff',
-            border: 'none',
-            opacity: flipped ? 1 : 0.5,
-            pointerEvents: flipped ? 'auto' : 'none',
-          }}
+          className={`flex-1 text-base py-3 rounded-xl bg-green-500 text-white border-none ${
+            flipped ? '' : 'opacity-50 pointer-events-none'
+          }`}
           onClick={() => handleReview(true)}
           disabled={!flipped}
         >
@@ -390,33 +199,18 @@ export default function ReviewCard() {
         </Button>
       </div>
       {/* Status */}
-      <div
-        style={{
-          fontSize: 15,
-          color: '#888',
-          marginBottom: 4,
-          textAlign: 'center',
-          fontWeight: 500,
-        }}
-      >
+      <div className='text-sm text-slate-400 mb-1 text-center font-medium'>
         Status:{' '}
-        <span style={{ color: '#222', fontWeight: 700 }}>
+        <span className='text-slate-900 font-bold'>
           {card.status.replace('-', ' ')}
         </span>
       </div>
-      <div
-        style={{
-          fontSize: 15,
-          color: '#888',
-          textAlign: 'center',
-          fontWeight: 500,
-        }}
-      >
+      <div className='text-sm text-slate-400 text-center font-medium'>
         Next review:{' '}
-        <span style={{ color: '#222', fontWeight: 700 }}>
+        <span className='text-slate-900 font-bold'>
           {formatNextReview(card.nextReview)}
         </span>
       </div>
-    </div>
+    </PageContainer>
   );
 }
