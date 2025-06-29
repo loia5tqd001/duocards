@@ -14,9 +14,7 @@ export interface Card {
   english: string;
   vietnamese: string;
   example?: string;
-  definition?: string;
   phonetic?: string;
-  partOfSpeech?: string;
   createdAt: number;
   status: CardStatus;
   nextReview: number; // timestamp (ms)

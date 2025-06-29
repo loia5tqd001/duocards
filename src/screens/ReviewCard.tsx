@@ -1,10 +1,122 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { FaVolumeUp, FaSyncAlt, FaPlus } from 'react-icons/fa';
+import { FaSyncAlt, FaPlus } from 'react-icons/fa';
 import { getDueCards, scheduleNext, updateCard, speak } from '../lib/utils';
 import type { Card } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
+import VolumeButton from '@/components/ui/VolumeButton';
+
+function ReviewCardFront({
+  card,
+  onFlip,
+  speak,
+}: {
+  card: Card;
+  onFlip: () => void;
+  speak: (text: string) => void;
+}) {
+  return (
+    <div
+      className='absolute w-full h-full top-0 left-0 bg-white rounded-xl shadow flex flex-col items-center justify-center p-6 backface-hidden overflow-y-auto max-h-full'
+      style={{ backfaceVisibility: 'hidden' }}
+    >
+      <style>{`.review-card::-webkit-scrollbar { display: none; }`}</style>
+      <div className='review-card w-full'>
+        <div className='text-2xl font-bold mb-2 text-center tracking-tight'>
+          {card.english}
+        </div>
+        <div className='text-slate-400 text-lg mb-2 font-medium flex items-center gap-2 justify-center'>
+          {card.phonetic}
+          <VolumeButton
+            onClick={() => speak(card.english || '')}
+            ariaLabel='Play word audio'
+            size={18}
+            significant={true}
+          />
+        </div>
+        <div className='flex gap-4 mb-2 justify-center'>
+          <Button
+            variant='outline'
+            size='icon'
+            className='rounded-lg w-10 h-10 min-w-0'
+            onClick={onFlip}
+            aria-label='Flip card'
+          >
+            <FaSyncAlt size={20} />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReviewCardBack({
+  card,
+  onFlip,
+  speak,
+}: {
+  card: Card;
+  onFlip: () => void;
+  speak: (text: string) => void;
+}) {
+  return (
+    <div
+      className='absolute w-full h-full top-0 left-0 bg-white rounded-xl shadow flex flex-col items-center justify-center p-6 backface-hidden overflow-y-auto max-h-full'
+      style={{
+        backfaceVisibility: 'hidden',
+        transform: 'rotateY(180deg)',
+      }}
+    >
+      <style>{`.review-card::-webkit-scrollbar { display: none; }`}</style>
+      <div className='review-card w-full flex flex-col items-center'>
+        {/* English word */}
+        <div className='text-xl font-bold mb-1 text-center tracking-tight'>
+          {card.english}
+        </div>
+        {/* IPA + speaker */}
+        <div className='text-slate-400 text-lg mb-2 font-medium flex items-center gap-2 justify-center'>
+          {card.phonetic}
+          <VolumeButton
+            onClick={() => speak(card.english || '')}
+            ariaLabel='Play word audio'
+            size={18}
+            significant={false}
+          />
+        </div>
+        {/* Vietnamese translation (biggest text) */}
+        <div className='text-2xl text-green-600 font-extrabold mb-4 text-center break-words'>
+          {card.vietnamese}
+        </div>
+        {/* Example (if present) */}
+        {card.example && (
+          <div className='text-base text-slate-700 mb-4 text-center flex items-center justify-center flex-wrap'>
+            <span className='mr-2 text-sm text-slate-500'>Example:</span>{' '}
+            <div className='flex items-center'>
+              {card.example}
+              <VolumeButton
+                onClick={() => speak(card.example || '')}
+                ariaLabel='Play example audio'
+                size={16}
+                significant={false}
+                className='ml-2 rounded-lg w-5 h-5 min-w-0'
+              />
+            </div>
+          </div>
+        )}
+        <Button
+          variant='outline'
+          size='icon'
+          className='rounded-lg w-10 h-10 min-w-0 mt-2'
+          onClick={onFlip}
+          aria-label='Flip card back'
+        >
+          <FaSyncAlt size={20} />
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function ReviewCard() {
   const navigate = useNavigate();
@@ -90,88 +202,15 @@ export default function ReviewCard() {
           }}
         >
           {/* Front Side */}
-          <div
-            className='absolute w-full h-full top-0 left-0 bg-white rounded-xl shadow flex flex-col items-center justify-center p-6 backface-hidden overflow-y-auto max-h-full'
-            style={{ backfaceVisibility: 'hidden' }}
-          >
-            <style>{`.review-card::-webkit-scrollbar { display: none; }`}</style>
-            <div className='review-card w-full'>
-              <div className='text-2xl font-bold mb-2 text-center tracking-tight'>
-                {card.english}
-              </div>
-              <div className='text-slate-400 text-lg mb-2 font-medium'>
-                {card.phonetic}
-              </div>
-              <div className='text-blue-600 font-semibold text-base mb-4'>
-                {card.partOfSpeech}
-              </div>
-              <div className='flex gap-4 mb-2 justify-center'>
-                <Button
-                  variant='secondary'
-                  size='icon'
-                  className='rounded-lg w-10 h-10 min-w-0'
-                  onClick={() => speak(card.english || '')}
-                  aria-label='Play word audio'
-                >
-                  <FaVolumeUp size={20} />
-                </Button>
-                <Button
-                  variant='outline'
-                  size='icon'
-                  className='rounded-lg w-10 h-10 min-w-0'
-                  onClick={handleFlip}
-                  aria-label='Flip card'
-                >
-                  <FaSyncAlt size={20} />
-                </Button>
-              </div>
-            </div>
-          </div>
+          <ReviewCardFront card={card} onFlip={handleFlip} speak={speak} />
           {/* Back Side */}
-          <div
-            className='absolute w-full h-full top-0 left-0 bg-white rounded-xl shadow flex flex-col items-center justify-center p-6 backface-hidden overflow-y-auto max-h-full'
-            style={{
-              backfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)',
-            }}
-          >
-            <style>{`.review-card::-webkit-scrollbar { display: none; }`}</style>
-            <div className='review-card w-full'>
-              <div className='text-lg text-green-500 font-semibold mb-2 text-center'>
-                {card.vietnamese}
-              </div>
-              <div className='text-base font-semibold mb-2 text-center'>
-                {card.definition}
-              </div>
-              <div className='text-sm text-slate-700 mb-3 text-center flex items-center justify-center flex-wrap'>
-                <span className='mr-2'>Example:</span> {card.example}
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='ml-2 rounded-lg w-8 h-8 min-w-0'
-                  onClick={() => speak(card.example || '')}
-                  aria-label='Play example audio'
-                >
-                  <FaVolumeUp size={16} />
-                </Button>
-              </div>
-              <Button
-                variant='outline'
-                size='icon'
-                className='rounded-lg w-10 h-10 min-w-0 mt-2'
-                onClick={handleFlip}
-                aria-label='Flip card back'
-              >
-                <FaSyncAlt size={20} />
-              </Button>
-            </div>
-          </div>
+          <ReviewCardBack card={card} onFlip={handleFlip} speak={speak} />
         </div>
       </div>
       {/* Action Buttons */}
       <div className='w-full flex gap-3 mb-7'>
         <Button
-          className={`flex-1 text-base py-3 rounded-xl ${
+          className={`flex-1 text-base py-3 rounded-xl hover:bg-red-700 focus:bg-red-700 focus-visible:bg-red-700 ${
             flipped ? '' : 'opacity-50 pointer-events-none'
           }`}
           variant='destructive'
@@ -181,7 +220,7 @@ export default function ReviewCard() {
           Incorrect
         </Button>
         <Button
-          className={`flex-1 text-base py-3 rounded-xl bg-green-500 text-white border-none ${
+          className={`flex-1 text-base py-3 rounded-xl bg-green-500 text-white border-none hover:bg-green-600 focus:bg-green-600 focus-visible:bg-green-600 ${
             flipped ? '' : 'opacity-50 pointer-events-none'
           }`}
           onClick={() => handleReview(true)}

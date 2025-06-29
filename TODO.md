@@ -24,3 +24,5 @@ Common:
 
 - [x] Migrate all styling to Tailwind CSS (mobile-first, shadcn/ui consistent)
 - [ ] All new UI should use Tailwind utility classes and follow mobile-first design
+
+- Abstracted all FaVolumeUp usages to a new VolumeButton component for consistent audio play UI/UX. Supports 'significant' (blue) and 'default' (shadow/black) color modes.

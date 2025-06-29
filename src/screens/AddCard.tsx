@@ -2,17 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { addCard as addCardToStorage } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
-import { FaVolumeUp, FaTimes } from 'react-icons/fa';
+import { FaTimes } from 'react-icons/fa';
 import { speak } from '../lib/utils';
 import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
+import VolumeButton from '@/components/ui/VolumeButton';
 
 // Info type for Cambridge info
 type Info = {
   word: string;
   phonetic: string;
   audio: string;
-  partOfSpeech: string;
-  definitions: string[];
   examples: string[];
   vietnameseTranslations: string[];
 };
@@ -31,6 +30,7 @@ export default function AddCard() {
     if (!english.trim()) {
       setInfo(null);
       setVietnamese('');
+      setExample('');
       setLoading(false);
       return;
     }
@@ -54,8 +54,6 @@ export default function AddCard() {
         word: data.word || word,
         phonetic: data.phonetic,
         audio: '', // You can extend the proxy to return audio URLs if needed
-        partOfSpeech: data.partOfSpeech,
-        definitions: data.definitions,
         examples: data.examples,
         vietnameseTranslations: data.vietnameseTranslations,
       });
@@ -80,9 +78,7 @@ export default function AddCard() {
       english,
       vietnamese,
       example,
-      definition: info?.definitions?.[0] || '',
       phonetic: info?.phonetic || '',
-      partOfSpeech: info?.partOfSpeech || '',
     });
     setAdded(true);
     setEnglish('');
@@ -134,14 +130,12 @@ export default function AddCard() {
           {info && (
             <div className='font-semibold text-lg mb-1 mt-1 flex items-center gap-2'>
               <span className='text-slate-400 text-sm'>{info.phonetic}</span>
-              <button
-                className='inline-flex items-center justify-center text-blue-500 hover:text-blue-700 focus:outline-none'
+              <VolumeButton
                 onClick={() => speak(info.word)}
-                aria-label='Play word audio'
-                type='button'
-              >
-                <FaVolumeUp size={18} />
-              </button>
+                ariaLabel='Play word audio'
+                size={18}
+                significant={true}
+              />
             </div>
           )}
         </div>

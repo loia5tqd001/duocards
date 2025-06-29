@@ -65,3 +65,7 @@ This project uses [Tailwind CSS](https://tailwindcss.com/) for all styling. All 
 ### AutoGrowTextarea
 
 A mobile-first textarea component that automatically grows from 1 to 3 rows based on content, used in the Add Card screen for the example field. Follows shadcn/ui design system.
+
+### VolumeButton
+
+A reusable button component for playing audio, wrapping the FaVolumeUp icon. Supports 'significant' (blue) and 'default' (shadow/black) color modes for consistent UI/UX. Used throughout the app for all audio play actions.
