@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -11,7 +11,12 @@ import {
 import type { Card, CardGrade } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
 import VolumeButton from '@/components/ui/VolumeButton';
-import { FaEdit, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import {
+  FaEdit,
+  FaArrowLeft,
+  FaArrowRight,
+  FaRegHandPointer,
+} from 'react-icons/fa';
 
 function ReviewCardFront({
   card,
@@ -44,6 +49,14 @@ function ReviewCardFront({
             significant={true}
           />
         </div>
+      </div>
+      {/* Tap to flip hint */}
+      <div className='absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none select-none'>
+        <FaRegHandPointer
+          className='text-slate-300 mb-1 animate-bounce'
+          size={20}
+        />
+        <span className='text-xs text-slate-400 font-medium'>Tap to flip</span>
       </div>
     </div>
   );
@@ -137,10 +150,14 @@ export default function ReviewCard() {
   const [shouldAutoPlay, setShouldAutoPlay] = useState(true);
   // Track if flip animation should be enabled
   const [shouldAnimateFlip, setShouldAnimateFlip] = useState(false);
-  // Track touch start position for swipe detection
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(
-    null
-  );
+
+  // Swipe state
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragX, setDragX] = useState(0);
+  const [opacity, setOpacity] = useState(1);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const startX = useRef(0);
+  const currentX = useRef(0);
 
   // Clear session queue when component mounts (new review session)
   useEffect(() => {
@@ -173,43 +190,6 @@ export default function ReviewCard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flipped, card]);
 
-  // Touch handlers for swipe gestures
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!flipped) return; // Only allow swipes when card is flipped
-    setTouchStart({
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY,
-    });
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart || !flipped) return;
-
-    const touchEnd = {
-      x: e.changedTouches[0].clientX,
-      y: e.changedTouches[0].clientY,
-    };
-
-    const dx = touchEnd.x - touchStart.x;
-    const dy = touchEnd.y - touchStart.y;
-
-    // Minimum swipe distance
-    const minSwipeDistance = 50;
-
-    // Check if horizontal swipe is more significant than vertical
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minSwipeDistance) {
-      if (dx > 0) {
-        // Swipe right - correct
-        handleReview('correct');
-      } else {
-        // Swipe left - incorrect
-        handleReview('incorrect');
-      }
-    }
-
-    setTouchStart(null);
-  };
-
   // Helper to format next review time
   function formatNextReview(ts: number) {
     const diff = ts - Date.now();
@@ -221,7 +201,6 @@ export default function ReviewCard() {
   }
 
   // Auto play audio when a new card is shown (not when flipping)
-  // Only play when not flipped and shouldAutoPlay is true
   useEffect(() => {
     if (card && !flipped && shouldAutoPlay) {
       speak(card.english || '');
@@ -237,6 +216,7 @@ export default function ReviewCard() {
   }, [card, flipped]);
 
   const handleFlip = () => {
+    if (isDragging) return; // Don't flip while dragging
     setFlipped((f) => !f);
     setShouldAutoPlay(false);
     setShouldAnimateFlip(true); // Enable animation when user flips
@@ -257,6 +237,89 @@ export default function ReviewCard() {
       setFlipped(false);
       setShouldAutoPlay(true); // Next card should auto play
       setShouldAnimateFlip(false); // Disable animation when moving to next card
+      // Reset swipe state
+      setDragX(0);
+      setOpacity(1);
+    }
+  };
+
+  // Touch handlers for swipe gestures
+  const handleStart = (clientX: number) => {
+    if (!flipped) return; // Only allow swipes when card is flipped
+    setIsDragging(true);
+    startX.current = clientX - dragX;
+  };
+
+  const handleMove = (clientX: number) => {
+    if (!isDragging || !flipped) return;
+
+    currentX.current = clientX - startX.current;
+    setDragX(currentX.current);
+
+    // Calculate opacity based on drag distance
+    const screenWidth = window.innerWidth;
+    const dragPercent = Math.abs(currentX.current) / (screenWidth * 0.4);
+    setOpacity(Math.max(0.2, 1 - dragPercent));
+  };
+
+  const handleEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    const screenWidth = window.innerWidth;
+    const threshold = screenWidth * 0.25; // 25% of screen width
+
+    if (Math.abs(dragX) > threshold) {
+      // Animate card off screen
+      const direction = dragX > 0 ? 1 : -1;
+      setDragX(screenWidth * direction);
+      setOpacity(0);
+
+      // Process the swipe
+      setTimeout(() => {
+        if (dragX > 0) {
+          handleReview('correct');
+        } else {
+          handleReview('incorrect');
+        }
+      }, 200);
+    } else {
+      // Spring back to center
+      setDragX(0);
+      setOpacity(1);
+    }
+  };
+
+  // Touch event handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    handleStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    handleMove(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    handleEnd();
+  };
+
+  // Mouse event handlers for desktop
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    handleStart(e.clientX);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    handleMove(e.clientX);
+  };
+
+  const handleMouseUp = () => {
+    handleEnd();
+  };
+
+  const handleMouseLeave = () => {
+    if (isDragging) {
+      handleEnd();
     }
   };
 
@@ -309,6 +372,11 @@ export default function ReviewCard() {
     );
   }
 
+  // Calculate rotation based on drag
+  const rotation = dragX / 10; // Subtle rotation effect
+  const showIncorrectHint = dragX < -50 && flipped;
+  const showCorrectHint = dragX > 50 && flipped;
+
   return (
     <PageContainer
       title='📖 Review Cards'
@@ -335,23 +403,57 @@ export default function ReviewCard() {
         </Button>
       }
     >
-      {/* 3D Flip Card */}
-      <div
-        className='w-full flex items-center justify-center mb-8'
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
+      {/* Swipe hints */}
+      <div className='relative w-full flex items-center justify-center mb-8'>
+        {/* Incorrect hint (left) */}
         <div
-          className={`w-full relative flex items-center justify-center max-w-full ${
+          className={`absolute left-4 top-1/2 -translate-y-1/2 transition-opacity duration-200 pointer-events-none z-10 ${
+            showIncorrectHint ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <div className='bg-red-500 text-white px-4 py-2 rounded-lg font-semibold shadow-lg'>
+            Didn't get it
+          </div>
+        </div>
+
+        {/* Correct hint (right) */}
+        <div
+          className={`absolute right-4 top-1/2 -translate-y-1/2 transition-opacity duration-200 pointer-events-none z-10 ${
+            showCorrectHint ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <div className='bg-green-500 text-white px-4 py-2 rounded-lg font-semibold shadow-lg'>
+            Got it!
+          </div>
+        </div>
+
+        {/* 3D Flip Card with swipe */}
+        <div
+          ref={cardRef}
+          className={`w-full relative flex items-center justify-center max-w-full select-none ${
             shouldAnimateFlip ? 'transition-transform duration-400' : ''
           }`}
           style={{
             transformStyle: 'preserve-3d',
-            transform: flipped ? 'rotateY(180deg)' : 'none',
+            transform: `translateX(${dragX}px) rotateY(${
+              flipped ? 180 : 0
+            }deg) rotateZ(${rotation}deg)`,
+            opacity: opacity,
+            transition: isDragging
+              ? 'none'
+              : 'transform 0.3s ease-out, opacity 0.3s ease-out',
             maxWidth: 360,
             minHeight: 320,
             maxHeight: 420,
+            cursor: flipped && !isDragging ? 'grab' : 'pointer',
           }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
         >
           {/* Front Side */}
           <ReviewCardFront card={card} onFlip={handleFlip} speak={speak} />
@@ -364,6 +466,7 @@ export default function ReviewCard() {
           />
         </div>
       </div>
+
       {/* Action Buttons - Simplified 2-button system */}
       <div className='w-full flex gap-4 mb-4'>
         <Button
@@ -391,6 +494,7 @@ export default function ReviewCard() {
           <FaArrowRight size={20} />
         </Button>
       </div>
+
       {/* Status and info */}
       <div className='text-xs text-slate-400 text-center space-y-1'>
         <div>
