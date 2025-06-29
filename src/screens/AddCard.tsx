@@ -26,6 +26,9 @@ export default function AddCard() {
   const [added, setAdded] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
+  const englishInputRef = useRef<HTMLInputElement>(null);
+  const vietnameseInputRef = useRef<HTMLInputElement>(null);
+  const exampleTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Debounced fetch for Cambridge info and translation
   useEffect(() => {
@@ -133,6 +136,7 @@ export default function AddCard() {
                 english ? 'border-blue-500' : 'border-slate-200'
               }`}
               autoFocus
+              ref={englishInputRef}
             />
             {english && (
               <Button
@@ -144,6 +148,7 @@ export default function AddCard() {
                   setEnglish('');
                   setInfo(null);
                   setAdded(false);
+                  setTimeout(() => englishInputRef.current?.focus(), 0);
                 }}
                 aria-label='Clear English input'
                 title='Clear English input'
@@ -179,6 +184,7 @@ export default function AddCard() {
               className={`w-full p-3 rounded-lg border text-base focus:outline-none pr-10 ${
                 vietnamese ? 'border-blue-500' : 'border-slate-200'
               }`}
+              ref={vietnameseInputRef}
             />
             {vietnamese && (
               <Button
@@ -186,7 +192,10 @@ export default function AddCard() {
                 variant='ghost'
                 size='icon'
                 className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
-                onClick={() => setVietnamese('')}
+                onClick={() => {
+                  setVietnamese('');
+                  setTimeout(() => vietnameseInputRef.current?.focus(), 0);
+                }}
                 aria-label='Clear Vietnamese input'
                 title='Clear Vietnamese input'
                 tabIndex={-1}
@@ -234,6 +243,7 @@ export default function AddCard() {
               className={`resize-none ${
                 example ? 'border-blue-500' : 'border-slate-200'
               }`}
+              ref={exampleTextareaRef}
             />
             {example && (
               <Button
@@ -241,7 +251,10 @@ export default function AddCard() {
                 variant='ghost'
                 size='icon'
                 className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
-                onClick={() => setExample('')}
+                onClick={() => {
+                  setExample('');
+                  setTimeout(() => exampleTextareaRef.current?.focus(), 0);
+                }}
                 aria-label='Clear Example input'
                 title='Clear Example input'
                 tabIndex={-1}
