@@ -240,9 +240,10 @@ export default function ReviewCard() {
       setFlipped(false);
       setShouldAutoPlay(true); // Next card should auto play
       setShouldAnimateFlip(false); // Disable animation when moving to next card
-      // Reset swipe state
+      // Reset swipe state immediately
       setDragX(0);
       setOpacity(1);
+      setIsDragging(false);
     }
   };
 
@@ -269,23 +270,15 @@ export default function ReviewCard() {
     if (!isDragging) return;
     setIsDragging(false);
 
-    const screenWidth = window.innerWidth;
     const threshold = HINT_APPEAR_THRESHOLD;
 
     if (Math.abs(dragX) > threshold) {
-      // Animate card off screen
-      const direction = dragX > 0 ? 1 : -1;
-      setDragX(screenWidth * direction);
-      setOpacity(0);
-
-      // Process the swipe
-      setTimeout(() => {
-        if (dragX > 0) {
-          handleReview('correct');
-        } else {
-          handleReview('incorrect');
-        }
-      }, 200);
+      // Immediately process the swipe - no animation delay
+      if (dragX > 0) {
+        handleReview('correct');
+      } else {
+        handleReview('incorrect');
+      }
     } else {
       // Spring back to center
       setDragX(0);
@@ -414,7 +407,7 @@ export default function ReviewCard() {
       className={'overflow-hidden'}
     >
       {/* Swipe hints */}
-      <div className='relative w-full flex items-center justify-center mb-8'>
+      <div className='relative w-full flex items-center justify-center mb-4'>
         {/* Incorrect hint (left) */}
         <div
           className={`absolute left-4 top-1/2 -translate-y-1/2 transition-opacity duration-200 pointer-events-none z-10 ${
@@ -445,10 +438,12 @@ export default function ReviewCard() {
             opacity: opacity,
             transition: isDragging
               ? 'none'
-              : 'transform 0.3s ease-out, opacity 0.3s ease-out',
+              : shouldAnimateFlip
+              ? 'transform 0.3s ease-out, opacity 0.3s ease-out'
+              : 'none',
             maxWidth: 360,
-            minHeight: 320,
-            maxHeight: 420,
+            minHeight: '60dvh',
+            maxHeight: '70dvh',
           }}
         >
           <div
@@ -460,8 +455,8 @@ export default function ReviewCard() {
               transformStyle: 'preserve-3d',
               transform: `rotateY(${flipped ? 180 : 0}deg)`,
               maxWidth: 360,
-              minHeight: 320,
-              maxHeight: 420,
+              minHeight: '60dvh',
+              maxHeight: '70dvh',
               cursor: flipped && !isDragging ? 'grab' : 'pointer',
             }}
             onTouchStart={handleTouchStart}
