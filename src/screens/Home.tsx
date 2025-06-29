@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   FaBook,
   FaCheckCircle,
@@ -77,19 +77,13 @@ function Home() {
   };
 
   // Filter cards based on selected filters, then sort by status order and nextReview
-  const statusOrder: Card['status'][] = ['learning', 'new', 'learned'];
-  const filteredCards = (
-    selectedFilters.length === 0
-      ? cards
-      : cards.filter((card) => selectedFilters.includes(card.status))
-  )
-    .slice()
-    .sort((a, b) => {
-      const statusDiff =
-        statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
-      if (statusDiff !== 0) return statusDiff;
-      return a.nextReview - b.nextReview;
-    });
+  const filteredCards = useMemo(() => {
+    return (
+      selectedFilters.length === 0
+        ? cards.slice()
+        : cards.filter((card) => selectedFilters.includes(card.status))
+    ).sort((a, b) => a.nextReview - b.nextReview);
+  }, [cards, selectedFilters]);
 
   // Display label for card status
   const getStatusLabel = (status: Card['status']) => {
