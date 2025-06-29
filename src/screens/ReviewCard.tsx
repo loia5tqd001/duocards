@@ -18,6 +18,8 @@ import {
   FaRegHandPointer,
 } from 'react-icons/fa';
 
+const HINT_APPEAR_THRESHOLD = 50;
+
 function ReviewCardFront({
   card,
   onFlip,
@@ -50,13 +52,15 @@ function ReviewCardFront({
           />
         </div>
       </div>
-      {/* Tap to flip hint */}
+      {/* Tap to reveal hint */}
       <div className='absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none select-none'>
         <FaRegHandPointer
           className='text-slate-300 mb-1 animate-bounce'
           size={20}
         />
-        <span className='text-xs text-slate-400 font-medium'>Tap to flip</span>
+        <span className='text-xs text-slate-400 font-medium'>
+          Tap to reveal
+        </span>
       </div>
     </div>
   );
@@ -64,12 +68,10 @@ function ReviewCardFront({
 
 function ReviewCardBack({
   card,
-  onFlip,
   speak,
   onEdit,
 }: {
   card: Card;
-  onFlip: (e: React.MouseEvent) => void;
   speak: (text: string) => void;
   onEdit: () => void;
 }) {
@@ -80,7 +82,6 @@ function ReviewCardBack({
         backfaceVisibility: 'hidden',
         transform: 'rotateY(180deg)',
       }}
-      onClick={onFlip}
     >
       <style>{`.review-card::-webkit-scrollbar { display: none; }`}</style>
       <div className='review-card w-full flex flex-col items-center'>
@@ -217,9 +218,11 @@ export default function ReviewCard() {
 
   const handleFlip = () => {
     if (isDragging) return; // Don't flip while dragging
-    setFlipped((f) => !f);
-    setShouldAutoPlay(false);
-    setShouldAnimateFlip(true); // Enable animation when user flips
+    if (!flipped) {
+      setFlipped(true);
+      setShouldAutoPlay(false);
+      setShouldAnimateFlip(true); // Enable animation when user flips
+    }
   };
 
   const handleReview = (grade: CardGrade) => {
@@ -267,7 +270,7 @@ export default function ReviewCard() {
     setIsDragging(false);
 
     const screenWidth = window.innerWidth;
-    const threshold = screenWidth * 0.25; // 25% of screen width
+    const threshold = HINT_APPEAR_THRESHOLD;
 
     if (Math.abs(dragX) > threshold) {
       // Animate card off screen
@@ -374,8 +377,8 @@ export default function ReviewCard() {
 
   // Calculate rotation based on drag
   const rotation = dragX / 10; // Subtle rotation effect
-  const showIncorrectHint = dragX < -50 && flipped;
-  const showCorrectHint = dragX > 50 && flipped;
+  const showIncorrectHint = dragX < -HINT_APPEAR_THRESHOLD && flipped;
+  const showCorrectHint = dragX > HINT_APPEAR_THRESHOLD && flipped;
 
   return (
     <PageContainer
@@ -412,7 +415,7 @@ export default function ReviewCard() {
           }`}
         >
           <div className='bg-red-500 text-white px-4 py-2 rounded-lg font-semibold shadow-lg'>
-            Didn't get it
+            Didn't get it!
           </div>
         </div>
 
@@ -460,7 +463,6 @@ export default function ReviewCard() {
           {/* Back Side */}
           <ReviewCardBack
             card={card}
-            onFlip={handleFlip}
             speak={speak}
             onEdit={() => navigate(`/edit/${card.id}`)}
           />
@@ -468,7 +470,7 @@ export default function ReviewCard() {
       </div>
 
       {/* Action Buttons - Simplified 2-button system */}
-      <div className='w-full flex gap-4 mb-4'>
+      <div className={`w-full flex gap-4 mb-2 ${!flipped ? 'opacity-0' : ''}`}>
         <Button
           className={`flex-1 text-base py-4 rounded-xl bg-red-500 hover:bg-red-600 focus:bg-red-600 focus-visible:bg-red-600 text-white border-none flex items-center justify-center gap-2 ${
             flipped ? '' : 'opacity-50 pointer-events-none'
@@ -493,6 +495,14 @@ export default function ReviewCard() {
           </div>
           <FaArrowRight size={20} />
         </Button>
+      </div>
+
+      <div
+        className={`text-xs text-slate-300 text-center mb-4 ${
+          flipped ? '' : 'opacity-0'
+        }`}
+      >
+        Swipe left/right or use arrow keys
       </div>
 
       {/* Status and info */}
@@ -521,9 +531,6 @@ export default function ReviewCard() {
         <div className='text-slate-300 mt-2'>
           {dueCards.length - 1} more cards due
         </div>
-      </div>
-      <div className='text-xs text-slate-300 text-center mt-4'>
-        Swipe left/right or use arrow keys
       </div>
     </PageContainer>
   );
