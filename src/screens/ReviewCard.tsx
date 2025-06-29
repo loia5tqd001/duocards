@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { FaSyncAlt, FaPlus } from 'react-icons/fa';
@@ -26,7 +26,7 @@ function ReviewCardFront({
         <div className='text-2xl font-bold mb-2 text-center tracking-tight'>
           {card.english}
         </div>
-        <div className='text-slate-400 text-lg mb-2 font-medium flex items-center gap-2 justify-center'>
+        <div className='text-slate-400 text-lg mb-2 font-medium flex items-center justify-center'>
           {card.phonetic}
           <VolumeButton
             onClick={() => speak(card.english || '')}
@@ -75,7 +75,7 @@ function ReviewCardBack({
           {card.english}
         </div>
         {/* IPA + speaker */}
-        <div className='text-slate-400 text-lg mb-2 font-medium flex items-center gap-2 justify-center'>
+        <div className='text-slate-400 text-lg mb-2 font-medium flex items-center justify-center'>
           {card.phonetic}
           <VolumeButton
             onClick={() => speak(card.english || '')}
@@ -99,7 +99,7 @@ function ReviewCardBack({
                 ariaLabel='Play example audio'
                 size={16}
                 significant={false}
-                className='ml-2 rounded-lg w-5 h-5 min-w-0'
+                className='rounded-lg w-5 h-5 min-w-0'
               />
             </div>
           </div>
@@ -125,6 +125,9 @@ export default function ReviewCard() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const card = dueCards[currentIdx];
 
+  // Track if we should auto play audio (only when a new card is shown, not when flipping)
+  const [shouldAutoPlay, setShouldAutoPlay] = useState(true);
+
   // Helper to format next review time
   function formatNextReview(ts: number) {
     const diff = ts - Date.now();
@@ -135,7 +138,20 @@ export default function ReviewCard() {
     return `in ${Math.round(diff / (24 * 3600000))} days`;
   }
 
-  const handleFlip = () => setFlipped((f) => !f);
+  // Auto play audio when a new card is shown (not when flipping)
+  // Only play when not flipped and shouldAutoPlay is true
+  useEffect(() => {
+    if (card && !flipped && shouldAutoPlay) {
+      speak(card.english || '');
+      setShouldAutoPlay(false); // Only play once per card
+    }
+  }, [card, flipped, shouldAutoPlay]);
+
+  const handleFlip = () => {
+    // If flipping back to front, do not auto play
+    setFlipped((f) => !f);
+    setShouldAutoPlay(false);
+  };
 
   const handleReview = (correct: boolean) => {
     if (!card) return;
@@ -146,6 +162,7 @@ export default function ReviewCard() {
     setDueCards(newDueCards);
     setCurrentIdx(0);
     setFlipped(false);
+    setShouldAutoPlay(true); // Next card should auto play
   };
 
   if (!card) {
