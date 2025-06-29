@@ -404,3 +404,9 @@ export function formatTimeUntil(timestamp: number): string {
   const days = Math.round(diff / 86400000);
   return `in ${days} day${days === 1 ? '' : 's'}`;
 }
+
+export function deleteCard(id: string) {
+  const cards = getAllCards();
+  const updated = cards.filter((c) => c.id !== id);
+  saveAllCards(updated);
+}

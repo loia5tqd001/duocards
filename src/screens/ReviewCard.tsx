@@ -11,6 +11,7 @@ import {
 import type { Card, CardGrade } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
 import VolumeButton from '@/components/ui/VolumeButton';
+import { FaEdit } from 'react-icons/fa';
 
 function ReviewCardFront({
   card,
@@ -52,10 +53,12 @@ function ReviewCardBack({
   card,
   onFlip,
   speak,
+  onEdit,
 }: {
   card: Card;
   onFlip: (e: React.MouseEvent) => void;
   speak: (text: string) => void;
+  onEdit: () => void;
 }) {
   return (
     <div
@@ -106,6 +109,18 @@ function ReviewCardBack({
             </div>
           </div>
         )}
+        {/* Edit button */}
+        <Button
+          variant='outline'
+          size='sm'
+          className='flex items-center gap-1 mt-2'
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+        >
+          <FaEdit size={14} /> Edit
+        </Button>
       </div>
     </div>
   );
@@ -305,7 +320,12 @@ export default function ReviewCard() {
           {/* Front Side */}
           <ReviewCardFront card={card} onFlip={handleFlip} speak={speak} />
           {/* Back Side */}
-          <ReviewCardBack card={card} onFlip={handleFlip} speak={speak} />
+          <ReviewCardBack
+            card={card}
+            onFlip={handleFlip}
+            speak={speak}
+            onEdit={() => navigate(`/edit/${card.id}`)}
+          />
         </div>
       </div>
       {/* Action Buttons - 4-button system */}

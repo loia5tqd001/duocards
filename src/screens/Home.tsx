@@ -1,9 +1,21 @@
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
-import { FaBook, FaCheckCircle, FaLightbulb, FaRedo } from 'react-icons/fa';
+import {
+  FaBook,
+  FaCheckCircle,
+  FaLightbulb,
+  FaRedo,
+  FaTrash,
+  FaEdit,
+} from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import type { Card } from '../lib/utils';
-import { getAllCards, getStats, formatTimeUntil } from '../lib/utils';
+import {
+  getAllCards,
+  getStats,
+  formatTimeUntil,
+  deleteCard,
+} from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
 
 function Home() {
@@ -200,14 +212,37 @@ function Home() {
                     </span>
                   )}
                 </div>
-                <span
-                  className={
-                    `text-xs font-medium rounded-lg px-2 py-0.5 ml-2 ` +
-                    getStatusColor(card.status)
-                  }
-                >
-                  {getStatusLabel(card.status)}
-                </span>
+                <div className='flex items-center gap-2'>
+                  <span
+                    className={
+                      `text-xs font-medium rounded-lg px-2 py-0.5 ml-2 ` +
+                      getStatusColor(card.status)
+                    }
+                  >
+                    {getStatusLabel(card.status)}
+                  </span>
+                  <button
+                    className='ml-2 text-slate-400 hover:text-blue-500 p-1 rounded'
+                    title='Edit Card'
+                    onClick={() => navigate(`/edit/${card.id}`)}
+                  >
+                    <FaEdit size={16} />
+                  </button>
+                  <button
+                    className='ml-1 text-slate-400 hover:text-red-500 p-1 rounded'
+                    title='Delete Card'
+                    onClick={() => {
+                      if (window.confirm('Delete this card?')) {
+                        deleteCard(card.id);
+                        setCards(getAllCards());
+                        setStats(getStats());
+                        window.dispatchEvent(new Event('storage'));
+                      }
+                    }}
+                  >
+                    <FaTrash size={16} />
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

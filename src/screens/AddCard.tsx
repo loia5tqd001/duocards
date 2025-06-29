@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { addCard as addCardToStorage } from '../lib/utils';
+import {
+  addCard as addCardToStorage,
+  updateCard,
+  getAllCards,
+} from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
 import { FaTimes } from 'react-icons/fa';
 import { speak } from '../lib/utils';
 import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import VolumeButton from '@/components/ui/VolumeButton';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 // Info type for Cambridge info
 type Info = {
@@ -17,25 +21,47 @@ type Info = {
   vietnameseTranslations: string[];
 };
 
-export default function AddCard() {
+export default function AddOrEditCard() {
+  const { id } = useParams<{ id?: string }>();
   const [english, setEnglish] = useState('');
   const [vietnamese, setVietnamese] = useState('');
   const [example, setExample] = useState('');
-  const [info, setInfo] = useState<Info | null>(null); // Placeholder for Cambridge info
+  const [info, setInfo] = useState<Info | null>(null);
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
+  const [editing, setEditing] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const englishInputRef = useRef<HTMLInputElement>(null);
   const vietnameseInputRef = useRef<HTMLInputElement>(null);
   const exampleTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const [cardLoaded, setCardLoaded] = useState(false);
+  const [phonetic, setPhonetic] = useState('');
 
-  // Debounced fetch for Cambridge info and translation
   useEffect(() => {
+    if (id) {
+      const card = getAllCards().find((c) => c.id === id);
+      if (card) {
+        setEnglish(card.english);
+        setVietnamese(card.vietnamese);
+        setExample(card.example || '');
+        setPhonetic(card.phonetic || '');
+        setEditing(true);
+      }
+      setCardLoaded(true);
+    } else {
+      setCardLoaded(true);
+    }
+  }, [id]);
+
+  // Debounced fetch for Cambridge info and translation (only in add mode)
+  useEffect(() => {
+    if (!cardLoaded || editing) return;
     if (!english.trim()) {
       setInfo(null);
       setVietnamese('');
       setExample('');
+      setPhonetic('');
       setLoading(false);
       return;
     }
@@ -44,7 +70,7 @@ export default function AddCard() {
     debounceRef.current = setTimeout(() => {
       fetchInfo(english.trim());
     }, 500);
-  }, [english]);
+  }, [english, editing, cardLoaded]);
 
   // Placeholder: fetch Cambridge info and auto-translate
   const fetchInfo = async (word: string) => {
@@ -58,16 +84,18 @@ export default function AddCard() {
       setInfo({
         word: data.word || word,
         phonetic: data.phonetic,
-        audio: '', // You can extend the proxy to return audio URLs if needed
+        audio: '',
         examples: data.examples,
         vietnameseTranslations: data.vietnameseTranslations,
       });
+      setPhonetic(data.phonetic || '');
       setVietnamese(data.mainVietnamese || '');
       setExample(data.examples?.[0] || '');
     } catch (e) {
       console.error(e);
       setInfo(null);
       setVietnamese('');
+      setPhonetic('');
     }
     setLoading(false);
   };
@@ -77,26 +105,40 @@ export default function AddCard() {
     setAdded(false);
   };
 
-  const handleAdd = () => {
+  const handleAddOrEdit = () => {
     if (!english || !vietnamese) return;
-    addCardToStorage({
-      english,
-      vietnamese,
-      example,
-      phonetic: info?.phonetic || '',
-    });
-    setAdded(true);
-    setEnglish('');
-    setVietnamese('');
-    setExample('');
-    setInfo(null);
-    setTimeout(() => setAdded(false), 1200);
-    window.dispatchEvent(new Event('storage')); // trigger Home stats update
+    if (editing && id) {
+      // Update existing card
+      const cards = getAllCards();
+      const card = cards.find((c) => c.id === id);
+      if (card) {
+        updateCard({ ...card, english, vietnamese, example });
+        setAdded(true);
+        setTimeout(() => setAdded(false), 1200);
+        window.dispatchEvent(new Event('storage'));
+        navigate('/');
+      }
+    } else {
+      // Add new card
+      addCardToStorage({
+        english,
+        vietnamese,
+        example,
+        phonetic: info?.phonetic || '',
+      });
+      setAdded(true);
+      setEnglish('');
+      setVietnamese('');
+      setExample('');
+      setInfo(null);
+      setTimeout(() => setAdded(false), 1200);
+      window.dispatchEvent(new Event('storage'));
+    }
   };
 
   return (
     <PageContainer
-      title='📝 Add New Card'
+      title={editing ? '✏️ Edit Card' : '📝 Add New Card'}
       leftButton={
         <Button
           variant='outline'
@@ -137,8 +179,9 @@ export default function AddCard() {
               }`}
               autoFocus
               ref={englishInputRef}
+              readOnly={editing}
             />
-            {english && (
+            {!editing && english && (
               <Button
                 type='button'
                 variant='ghost'
@@ -158,17 +201,31 @@ export default function AddCard() {
               </Button>
             )}
           </div>
-          {info && (
-            <div className='font-semibold text-lg mb-1 mt-1 flex items-center gap-2'>
-              <span className='text-slate-400 text-sm'>{info.phonetic}</span>
-              <VolumeButton
-                onClick={() => speak(info.word)}
-                ariaLabel='Play word audio'
-                size={18}
-                significant={true}
-              />
-            </div>
-          )}
+          {editing
+            ? phonetic && (
+                <div className='font-semibold text-lg mb-1 mt-1 flex items-center gap-2'>
+                  <span className='text-slate-400 text-sm'>{phonetic}</span>
+                  <VolumeButton
+                    onClick={() => speak(english)}
+                    ariaLabel='Play word audio'
+                    size={18}
+                    significant={true}
+                  />
+                </div>
+              )
+            : info && (
+                <div className='font-semibold text-lg mb-1 mt-1 flex items-center gap-2'>
+                  <span className='text-slate-400 text-sm'>
+                    {info.phonetic}
+                  </span>
+                  <VolumeButton
+                    onClick={() => speak(info.word)}
+                    ariaLabel='Play word audio'
+                    size={18}
+                    significant={true}
+                  />
+                </div>
+              )}
         </div>
         <div className='pt-1'>
           <label htmlFor='vietnamese' className='font-bold text-sm'>
@@ -205,7 +262,8 @@ export default function AddCard() {
             )}
           </div>
           {/* Chips for Vietnamese translation suggestions */}
-          {info &&
+          {!editing &&
+            info &&
             Array.isArray(info.vietnameseTranslations) &&
             info.vietnameseTranslations.length > 0 && (
               <div className='flex flex-wrap gap-2 mt-2'>
@@ -264,36 +322,41 @@ export default function AddCard() {
             )}
           </div>
           {/* Chips for example suggestions */}
-          {info && Array.isArray(info.examples) && info.examples.length > 0 && (
-            <div className='flex flex-wrap gap-2 mt-2'>
-              {info.examples.map((ex, i) => (
-                <button
-                  key={i}
-                  type='button'
-                  className={`px-3 py-1 rounded-full border text-xs transition-colors cursor-pointer
+          {!editing &&
+            info &&
+            Array.isArray(info.examples) &&
+            info.examples.length > 0 && (
+              <div className='flex flex-wrap gap-2 mt-2'>
+                {info.examples.map((ex, i) => (
+                  <button
+                    key={i}
+                    type='button'
+                    className={`px-3 py-1 rounded-full border text-xs transition-colors cursor-pointer
                     ${
                       example === ex
                         ? 'border-primary text-primary bg-white'
                         : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                     }
                   `}
-                  onClick={() => setExample(ex)}
-                >
-                  {ex}
-                </button>
-              ))}
-            </div>
-          )}
+                    onClick={() => setExample(ex)}
+                  >
+                    {ex}
+                  </button>
+                ))}
+              </div>
+            )}
         </div>
         <Button
           className='w-full text-base py-3 rounded-xl mt-2'
-          onClick={handleAdd}
+          onClick={handleAddOrEdit}
           disabled={!english || !vietnamese || loading}
         >
-          {loading ? 'Loading...' : 'Add Card'}
+          {loading ? 'Loading...' : editing ? 'Save Changes' : 'Add Card'}
         </Button>
         {added && (
-          <div className='text-green-500 text-center font-medium'>Added!</div>
+          <div className='text-green-500 text-center font-medium'>
+            {editing ? 'Saved!' : 'Added!'}
+          </div>
         )}
       </div>
     </PageContainer>

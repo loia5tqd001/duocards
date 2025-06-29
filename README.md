@@ -234,3 +234,9 @@ MIT
 - **Port already in use?**
   - If you see a message like `Port 5173 is in use, trying another one...`, Vite will automatically try the next available port (e.g., 5174).
   - To specify a port manually, run: `pnpm dev -- --port=5180`
+
+## New Features
+
+- You can now **edit** any flashcard by clicking the pencil icon on the Home screen. This opens the edit form, pre-filled with the card's data.
+- You can now **delete** any flashcard by clicking the trash icon on the Home screen. You will be asked to confirm before deletion.
+- The add card form is now also used for editing cards. The edit route is `/edit/:id`.

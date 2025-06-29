@@ -45,6 +45,8 @@ Common:
   - [x] Fixed immediate repetition issue with session queue
   - [x] Better interval progression based on performance
   - [x] Card status system: new → learning → review (with relearning for lapses)
+- [x] Delete flashcard from Home screen
+- [x] Edit flashcard from Home screen (reuses AddCard form)
 
 ## 🚧 In Progress
 
