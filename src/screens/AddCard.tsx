@@ -76,8 +76,9 @@ export default function AddOrEditCard() {
   const fetchInfo = async (word: string) => {
     setLoading(true);
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const res = await fetch(
-        `http://localhost:3001/api/cambridge/${encodeURIComponent(word)}`
+        `${apiUrl}/api/cambridge/${encodeURIComponent(word)}`
       );
       if (!res.ok) throw new Error('Not found');
       const data = await res.json();
