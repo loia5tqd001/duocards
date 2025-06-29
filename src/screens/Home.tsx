@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import type { Card } from '../lib/utils';
 import { getAllCards, getStats, formatTimeUntil } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
-import React from 'react';
 
 function Home() {
   const navigate = useNavigate();
@@ -158,7 +157,9 @@ function Home() {
               }
               style={{ outline: 'none' }}
             >
-              <div className='text-base font-semibold text-slate-900 leading-none'>
+              <div
+                className={`text-base font-semibold leading-none ${s.color}`}
+              >
                 {s.value}
               </div>
               <div className={`text-xs font-medium leading-none ${s.color}`}>
@@ -194,7 +195,7 @@ function Home() {
                       {formatTimeUntil(card.nextReview)}
                     </span>
                   ) : (
-                    <span className='text-xs text-green-600 font-semibold mt-0.5'>
+                    <span className='text-xs text-green-500 font-semibold mt-0.5'>
                       Ready to review!
                     </span>
                   )}
