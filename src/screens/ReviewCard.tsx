@@ -191,16 +191,6 @@ export default function ReviewCard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flipped, card]);
 
-  // Helper to format next review time
-  function formatNextReview(ts: number) {
-    const diff = ts - Date.now();
-    if (diff < 60 * 1000) return 'in a few seconds';
-    if (diff < 60 * 60 * 1000) return `in ${Math.round(diff / 60000)} min`;
-    if (diff < 24 * 60 * 60 * 1000)
-      return `in ${Math.round(diff / 3600000)} hr`;
-    return `in ${Math.round(diff / (24 * 3600000))} days`;
-  }
-
   // Auto play audio when a new card is shown (not when flipping)
   useEffect(() => {
     if (card && !flipped && shouldAutoPlay) {
@@ -442,8 +432,8 @@ export default function ReviewCard() {
               ? 'transform 0.3s ease-out, opacity 0.3s ease-out'
               : 'none',
             maxWidth: 360,
-            minHeight: '60dvh',
-            maxHeight: '70dvh',
+            minHeight: '70dvh',
+            maxHeight: '80dvh',
           }}
         >
           <div
@@ -455,8 +445,8 @@ export default function ReviewCard() {
               transformStyle: 'preserve-3d',
               transform: `rotateY(${flipped ? 180 : 0}deg)`,
               maxWidth: 360,
-              minHeight: '60dvh',
-              maxHeight: '70dvh',
+              minHeight: '70dvh',
+              maxHeight: '80dvh',
               cursor: flipped && !isDragging ? 'grab' : 'pointer',
             }}
             onTouchStart={handleTouchStart}
@@ -508,7 +498,7 @@ export default function ReviewCard() {
       </div>
 
       <div
-        className={`text-xs text-slate-300 text-center mb-4 ${
+        className={`text-xs text-slate-300 text-center mb-2 ${
           flipped ? '' : 'opacity-0'
         }`}
       >
@@ -517,30 +507,7 @@ export default function ReviewCard() {
 
       {/* Status and info */}
       <div className='text-xs text-slate-400 text-center space-y-1'>
-        <div>
-          Status:{' '}
-          <span className='text-slate-700 font-medium capitalize'>
-            {card.status}
-          </span>
-          {card.status === 'learning' && ` (step ${card.stepIndex + 1}/2)`}
-        </div>
-        <div>
-          Next:{' '}
-          <span className='text-slate-700 font-medium'>
-            {formatNextReview(card.nextReview)}
-          </span>
-        </div>
-        {card.status === 'learned' && (
-          <div>
-            Interval:{' '}
-            <span className='text-slate-700 font-medium'>
-              {Math.round(card.interval)} days
-            </span>
-          </div>
-        )}
-        <div className='text-slate-300 mt-2'>
-          {dueCards.length - 1} more cards due
-        </div>
+        {dueCards.length - 1} more cards due
       </div>
     </PageContainer>
   );
