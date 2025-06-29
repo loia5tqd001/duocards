@@ -248,14 +248,14 @@ export default function ReviewCard() {
             onClick={() => navigate('/add')}
             className='text-base rounded-xl py-3 px-8'
           >
-            Add Card
+            Add Card 📝
           </Button>
           <Button
             variant='outline'
             onClick={() => navigate('/')}
             className='text-base rounded-xl py-3 px-8 mt-3'
           >
-            Back to Home
+            Back to Home 🏠
           </Button>
         </div>
       </PageContainer>

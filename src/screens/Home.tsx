@@ -172,13 +172,8 @@ function Home() {
         })}
       </div>
 
-      {/* Total cards summary */}
-      <div className='text-center text-sm text-slate-500 mt-2'>
-        Total: {stats.total} cards
-      </div>
-
       {/* Card List */}
-      <div className='mt-4'>
+      <div>
         {filteredCards.length === 0 ? (
           <div className='text-slate-400 text-sm text-center'>
             {selectedFilters.length > 0
