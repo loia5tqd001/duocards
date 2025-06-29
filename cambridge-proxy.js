@@ -62,10 +62,9 @@ app.get('/api/cambridge/:word', async (req, res) => {
       phonetic,
       partOfSpeech,
       definitions,
-      vietnameseTranslations,
+      vietnameseTranslations: vietnameseTranslations.slice(0, 5),
       mainVietnamese,
-      examples: examples.slice(0, 10),
-      debug: vietnameseTranslations,
+      examples: examples.slice(0, 5),
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch or parse Cambridge page.' });
