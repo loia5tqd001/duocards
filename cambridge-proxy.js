@@ -26,7 +26,7 @@ app.get('/api/cambridge/:word', async (req, res) => {
 
     // Definitions, Vietnamese translations, and examples
     const definitions = [];
-    const vietnameseTranslations = [];
+    const vietnameseTranslationsSet = new Set();
     const examples = [];
 
     $('.def-block.ddef_block').each((i, el) => {
@@ -37,7 +37,7 @@ app.get('/api/cambridge/:word', async (req, res) => {
       // Vietnamese translation (robust selector)
       const viNode = $(el).find('.trans.dtrans, .trans').first();
       const vi = viNode.text().trim();
-      if (vi) vietnameseTranslations.push(vi);
+      if (vi) vietnameseTranslationsSet.add(vi);
 
       // Debug: log the translation node
       // console.log('VI HTML:', viNode.html(), 'TEXT:', vi);
@@ -50,6 +50,9 @@ app.get('/api/cambridge/:word', async (req, res) => {
           if (exText) examples.push(exText);
         });
     });
+
+    // Convert Set to array for unique Vietnamese translations
+    const vietnameseTranslations = Array.from(vietnameseTranslationsSet);
 
     // Use the first translation as the main one
     const mainVietnamese = vietnameseTranslations[0] || '';
