@@ -4,7 +4,6 @@ import {
   FaBook,
   FaCheckCircle,
   FaLightbulb,
-  FaRedo,
   FaTrash,
   FaEdit,
 } from 'react-icons/fa';
@@ -41,8 +40,7 @@ function Home() {
   const statusMap: Record<string, Card['status']> = {
     New: 'new',
     Learning: 'learning',
-    Review: 'review',
-    Relearning: 'relearning',
+    Learned: 'learned',
   };
 
   const statList = [
@@ -51,28 +49,21 @@ function Home() {
       value: stats.new,
       color: 'text-blue-500',
       icon: <FaBook size={24} color='#3b82f6' />,
-      sublabel: 'Not Studied',
+      sublabel: 'Not Started',
     },
     {
       label: 'Learning',
       value: stats.learning,
       color: 'text-yellow-500',
       icon: <FaLightbulb size={24} color='#eab308' />,
-      sublabel: 'Memorizing',
+      sublabel: 'In Progress',
     },
     {
-      label: 'Review',
-      value: stats.review,
+      label: 'Learned',
+      value: stats.learned,
       color: 'text-green-500',
       icon: <FaCheckCircle size={24} color='#22c55e' />,
-      sublabel: 'Learned',
-    },
-    {
-      label: 'Relearning',
-      value: stats.relearning,
-      color: 'text-red-500',
-      icon: <FaRedo size={24} color='#ef4444' />,
-      sublabel: 'Forgotten',
+      sublabel: 'Completed',
     },
   ];
 
@@ -86,12 +77,7 @@ function Home() {
   };
 
   // Filter cards based on selected filters, then sort by status order and nextReview
-  const statusOrder: Card['status'][] = [
-    'learning',
-    'relearning',
-    'new',
-    'review',
-  ];
+  const statusOrder: Card['status'][] = ['learning', 'new', 'learned'];
   const filteredCards = (
     selectedFilters.length === 0
       ? cards
@@ -112,10 +98,8 @@ function Home() {
         return 'New';
       case 'learning':
         return 'Learning';
-      case 'review':
-        return 'Review';
-      case 'relearning':
-        return 'Relearning';
+      case 'learned':
+        return 'Learned';
       default:
         return status;
     }
@@ -128,10 +112,8 @@ function Home() {
         return 'text-blue-500 bg-blue-50';
       case 'learning':
         return 'text-yellow-500 bg-yellow-50';
-      case 'review':
+      case 'learned':
         return 'text-green-500 bg-green-50';
-      case 'relearning':
-        return 'text-red-500 bg-red-50';
       default:
         return 'text-gray-500 bg-gray-50';
     }
@@ -154,7 +136,7 @@ function Home() {
           📝 Add Card
         </Button>
       </div>
-      <div className='grid grid-cols-4 gap-2 w-full mb-4'>
+      <div className='grid grid-cols-3 gap-3 w-full mb-4'>
         {statList.map((s) => {
           const status = statusMap[s.label];
           const isSelected = selectedFilters.includes(status);
@@ -164,21 +146,16 @@ function Home() {
               type='button'
               onClick={() => handleFilterClick(s.label)}
               className={
-                'flex flex-col items-center justify-center bg-white rounded-lg shadow p-1 transition-all border-2 min-w-0 w-full gap-1' +
+                'flex flex-col items-center justify-center bg-white rounded-lg shadow p-3 transition-all border-2 min-w-0 w-full gap-2' +
                 (isSelected ? ' border-blue-500' : ' border-transparent')
               }
               style={{ outline: 'none' }}
             >
-              <div
-                className={`text-base font-semibold leading-none ${s.color}`}
-              >
+              <div className={`text-xl font-bold leading-none ${s.color}`}>
                 {s.value}
               </div>
-              <div className={`text-xs font-medium leading-none ${s.color}`}>
+              <div className={`text-sm font-medium leading-none ${s.color}`}>
                 {s.label}
-              </div>
-              <div className='text-[10px] text-slate-400 leading-none'>
-                {s.sublabel}
               </div>
             </button>
           );

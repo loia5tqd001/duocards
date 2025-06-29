@@ -7,8 +7,8 @@ export function cn(...inputs: ClassValue[]) {
 
 // --- Card & Spaced Repetition Logic ---
 
-export type CardStatus = 'new' | 'learning' | 'review' | 'relearning';
-export type CardGrade = 'again' | 'hard' | 'good' | 'easy';
+export type CardStatus = 'new' | 'learning' | 'learned';
+export type CardGrade = 'incorrect' | 'correct';
 
 export interface Card {
   id: string;
@@ -18,32 +18,25 @@ export interface Card {
   phonetic?: string;
   createdAt: number;
 
-  // Spaced repetition fields
+  // Simplified spaced repetition fields
   status: CardStatus;
   interval: number; // in days
-  easeFactor: number; // 1.3 to 2.5, affects interval growth
-  stepIndex: number; // current position in learning/relearning steps
+  stepIndex: number; // current position in learning steps
   nextReview: number; // timestamp (ms)
   lapses: number; // number of times forgotten
   reps: number; // total successful reviews
   lastReview?: number; // timestamp of last review
+  // Remove easeFactor - we'll use fixed multipliers
 }
 
-// Learning steps in minutes
+// Simplified learning steps in minutes
 const LEARNING_STEPS = [1, 10]; // 1 minute, then 10 minutes
-const RELEARNING_STEPS = [10]; // 10 minutes for failed cards
 const GRADUATING_INTERVAL = 1; // 1 day after learning steps
-const EASY_INTERVAL = 4; // 4 days when "easy" during learning
 
-// Algorithm parameters
-const STARTING_EASE = 2.5;
-const MINIMUM_EASE = 1.3;
-const EASE_AGAIN_DELTA = -0.2;
-const EASE_HARD_DELTA = -0.15;
-const EASE_EASY_DELTA = 0.15;
-const INTERVAL_MODIFIER = 1.0;
-const HARD_INTERVAL_MODIFIER = 1.2;
-const NEW_INTERVAL_MODIFIER = 0.0; // 0% of previous interval on lapses
+// Simplified algorithm parameters
+const CORRECT_MULTIPLIER = 2.5; // Multiply interval by this when correct
+const INCORRECT_MULTIPLIER = 0.25; // Reduce interval to 25% when incorrect
+const MINIMUM_INTERVAL = 1; // Minimum 1 day interval for learned cards
 
 // Session queue to prevent immediate repetition
 const sessionQueue: Set<string> = new Set();
@@ -71,7 +64,6 @@ export function addCard(
     | 'createdAt'
     | 'status'
     | 'interval'
-    | 'easeFactor'
     | 'stepIndex'
     | 'nextReview'
     | 'lapses'
@@ -84,7 +76,6 @@ export function addCard(
     createdAt: Date.now(),
     status: 'new',
     interval: 0,
-    easeFactor: STARTING_EASE,
     stepIndex: 0,
     nextReview: Date.now(), // due immediately
     lapses: 0,
@@ -128,11 +119,8 @@ export function scheduleNext(card: Card, grade: CardGrade): Card {
     case 'learning':
       updated = scheduleLearning(updated, grade);
       break;
-    case 'review':
-      updated = scheduleReview(updated, grade);
-      break;
-    case 'relearning':
-      updated = scheduleRelearning(updated, grade);
+    case 'learned':
+      updated = scheduleLearned(updated, grade);
       break;
   }
 
@@ -143,7 +131,7 @@ export function scheduleNext(card: Card, grade: CardGrade): Card {
 function scheduleLearning(card: Card, grade: CardGrade): Card {
   const now = Date.now();
 
-  if (grade === 'again') {
+  if (grade === 'incorrect') {
     // Reset to first step
     return {
       ...card,
@@ -153,26 +141,14 @@ function scheduleLearning(card: Card, grade: CardGrade): Card {
     };
   }
 
-  if (grade === 'easy') {
-    // Graduate immediately with easy interval
-    return {
-      ...card,
-      status: 'review',
-      interval: EASY_INTERVAL,
-      stepIndex: 0,
-      nextReview: now + daysToMs(EASY_INTERVAL),
-      reps: card.reps + 1,
-    };
-  }
-
-  // For 'hard' or 'good'
-  const nextStepIndex = grade === 'hard' ? card.stepIndex : card.stepIndex + 1;
+  // Correct - advance to next step
+  const nextStepIndex = card.stepIndex + 1;
 
   if (nextStepIndex >= LEARNING_STEPS.length) {
-    // Graduate to review
+    // Graduate to learned
     return {
       ...card,
-      status: 'review',
+      status: 'learned',
       interval: GRADUATING_INTERVAL,
       stepIndex: 0,
       nextReview: now + daysToMs(GRADUATING_INTERVAL),
@@ -189,91 +165,49 @@ function scheduleLearning(card: Card, grade: CardGrade): Card {
   };
 }
 
-// Schedule review cards (graduated cards)
-function scheduleReview(card: Card, grade: CardGrade): Card {
+// Schedule learned cards
+function scheduleLearned(card: Card, grade: CardGrade): Card {
   const now = Date.now();
-  let easeFactor = card.easeFactor;
-  const interval = card.interval;
+  let newInterval: number;
 
-  // Adjust ease factor
-  if (grade === 'again') {
-    easeFactor = Math.max(MINIMUM_EASE, easeFactor + EASE_AGAIN_DELTA);
-  } else if (grade === 'hard') {
-    easeFactor = Math.max(MINIMUM_EASE, easeFactor + EASE_HARD_DELTA);
-  } else if (grade === 'easy') {
-    easeFactor = easeFactor + EASE_EASY_DELTA;
-  }
-  // 'good' doesn't change ease
+  if (grade === 'incorrect') {
+    // Reduce interval significantly
+    newInterval = Math.max(
+      MINIMUM_INTERVAL,
+      card.interval * INCORRECT_MULTIPLIER
+    );
 
-  // Calculate new interval
-  if (grade === 'again') {
-    // Move to relearning
+    // If interval drops below minimum, put back in learning
+    if (newInterval <= MINIMUM_INTERVAL) {
+      return {
+        ...card,
+        status: 'learning',
+        stepIndex: 0,
+        interval: 0,
+        nextReview: now + minutesToMs(LEARNING_STEPS[0]),
+        lapses: card.lapses + 1,
+      };
+    }
+
     return {
       ...card,
-      status: 'relearning',
-      easeFactor,
-      stepIndex: 0,
-      interval: Math.max(1, interval * NEW_INTERVAL_MODIFIER),
-      nextReview: now + minutesToMs(RELEARNING_STEPS[0]),
+      interval: newInterval,
+      nextReview: now + daysToMs(newInterval),
       lapses: card.lapses + 1,
     };
   }
 
-  // Calculate interval based on grade
-  let newInterval: number;
-  if (grade === 'hard') {
-    newInterval = interval * HARD_INTERVAL_MODIFIER;
-  } else if (grade === 'good') {
-    newInterval = interval * easeFactor;
-  } else {
-    // easy
-    newInterval = interval * easeFactor * 1.3;
-  }
+  // Correct - increase interval
+  newInterval = card.interval * CORRECT_MULTIPLIER;
 
-  // Apply interval modifier and ensure minimum
-  newInterval = Math.max(interval + 1, newInterval * INTERVAL_MODIFIER);
+  // Cap at reasonable maximum (1 year)
+  newInterval = Math.min(365, newInterval);
 
   return {
     ...card,
-    easeFactor,
     interval: newInterval,
     nextReview: now + daysToMs(newInterval),
     reps: card.reps + 1,
-  };
-}
-
-// Schedule relearning cards (failed review cards)
-function scheduleRelearning(card: Card, grade: CardGrade): Card {
-  const now = Date.now();
-
-  if (grade === 'again') {
-    // Reset to first relearning step
-    return {
-      ...card,
-      stepIndex: 0,
-      nextReview: now + minutesToMs(RELEARNING_STEPS[0]),
-    };
-  }
-
-  // For 'hard', 'good', or 'easy'
-  const nextStepIndex = grade === 'hard' ? card.stepIndex : card.stepIndex + 1;
-
-  if (nextStepIndex >= RELEARNING_STEPS.length) {
-    // Graduate back to review
-    return {
-      ...card,
-      status: 'review',
-      stepIndex: 0,
-      nextReview: now + daysToMs(card.interval),
-      reps: card.reps + 1,
-    };
-  }
-
-  // Move to next relearning step
-  return {
-    ...card,
-    stepIndex: nextStepIndex,
-    nextReview: now + minutesToMs(RELEARNING_STEPS[nextStepIndex]),
   };
 }
 
@@ -284,10 +218,9 @@ export function getDueCards(): Card[] {
     .filter((c) => !sessionQueue.has(c.id)) // Exclude cards reviewed this session
     .filter((c) => c.nextReview <= now)
     .sort((a, b) => {
-      // Priority order: learning/relearning > new > review
+      // Priority order: learning > new > learned
       const priority = (card: Card) => {
-        if (card.status === 'learning' || card.status === 'relearning')
-          return 0;
+        if (card.status === 'learning') return 0;
         if (card.status === 'new') return 1;
         return 2;
       };
@@ -313,8 +246,7 @@ export function getStats() {
   return {
     new: cards.filter((c) => c.status === 'new').length,
     learning: cards.filter((c) => c.status === 'learning').length,
-    review: cards.filter((c) => c.status === 'review').length,
-    relearning: cards.filter((c) => c.status === 'relearning').length,
+    learned: cards.filter((c) => c.status === 'learned').length,
     due: cards.filter((c) => c.nextReview <= now && !sessionQueue.has(c.id))
       .length,
     total: cards.length,
@@ -329,10 +261,22 @@ type OldCard = {
   example?: string;
   phonetic?: string;
   createdAt: number;
-  status: 'to-learn' | 'known' | 'learned';
+  status:
+    | 'to-learn'
+    | 'known'
+    | 'learned'
+    | 'new'
+    | 'learning'
+    | 'review'
+    | 'relearning';
   nextReview: number;
   interval: number;
-  reviewCount: number;
+  reviewCount?: number;
+  reps?: number;
+  easeFactor?: number;
+  stepIndex?: number;
+  lapses?: number;
+  lastReview?: number;
 };
 
 // Convert old card format to new format (for migration)
@@ -341,31 +285,47 @@ export function migrateCards() {
   let migrated = false;
 
   const updatedCards = cards.map((card) => {
-    // Check if card uses old format (using type guard)
-    if ('status' in card && 'reviewCount' in card) {
-      const oldCard = card as unknown as OldCard;
-      if (
-        oldCard.status === 'to-learn' ||
+    const oldCard = card as unknown as OldCard;
+
+    // Check if this is an old format card that needs migration
+    if (
+      'easeFactor' in oldCard ||
+      oldCard.status === 'review' ||
+      oldCard.status === 'relearning' ||
+      oldCard.status === 'to-learn' ||
+      oldCard.status === 'known'
+    ) {
+      migrated = true;
+
+      // Map old status to new
+      let newStatus: CardStatus = 'new';
+      if (oldCard.status === 'learning') {
+        newStatus = 'learning';
+      } else if (
+        oldCard.status === 'review' ||
+        oldCard.status === 'relearning' ||
         oldCard.status === 'known' ||
         oldCard.status === 'learned'
       ) {
-        migrated = true;
-
-        // Map old status to new
-        let newStatus: CardStatus = 'new';
-        if (oldCard.status === 'known') newStatus = 'review';
-        else if (oldCard.status === 'learned') newStatus = 'review';
-
-        return {
-          ...card,
-          status: newStatus,
-          easeFactor: STARTING_EASE,
-          stepIndex: 0,
-          lapses: 0,
-          reps: oldCard.reviewCount || 0,
-          interval: oldCard.interval || 1,
-        } as Card;
+        newStatus = 'learned';
       }
+
+      // Create new card structure without easeFactor
+      return {
+        id: oldCard.id,
+        english: oldCard.english,
+        vietnamese: oldCard.vietnamese,
+        example: oldCard.example,
+        phonetic: oldCard.phonetic,
+        createdAt: oldCard.createdAt,
+        status: newStatus,
+        interval: oldCard.interval || 1,
+        stepIndex: oldCard.stepIndex || 0,
+        nextReview: oldCard.nextReview,
+        lapses: oldCard.lapses || 0,
+        reps: oldCard.reps || oldCard.reviewCount || 0,
+        lastReview: oldCard.lastReview,
+      } as Card;
     }
     return card;
   });

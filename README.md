@@ -1,146 +1,123 @@
 # Duocards - Flashcard App for Language Learning
 
-A mobile-first flashcard application designed to help users learn vocabulary efficiently using an advanced spaced repetition algorithm. Built with React, TypeScript, and Tailwind CSS.
+A mobile-first flashcard application designed to help users learn vocabulary efficiently using a simplified spaced repetition algorithm. Built with React, TypeScript, and Tailwind CSS.
 
 ## Features
 
-### 🧠 Advanced Spaced Repetition Algorithm
+### 🧠 Simplified Spaced Repetition Algorithm
 
-- **SM-2 Inspired Algorithm**: Implements a sophisticated spaced repetition system based on proven memory research
-- **4-Button Review System**:
-  - 😕 **Again** - Forgot the card (resets progress)
-  - 😐 **Hard** - Difficult but remembered (smaller interval increase)
-  - 🙂 **Good** - Normal difficulty (standard interval increase)
-  - 😊 **Easy** - Very easy (larger interval increase)
-- **Learning Phases**:
-  - **New Cards**: Start with short intervals (1 min → 10 min → 1 day)
-  - **Learning**: Cards in the process of initial memorization
-  - **Review**: Graduated cards with increasing intervals
-  - **Relearning**: Forgotten cards get a second chance with shorter steps
-- **Ease Factor**: Tracks individual card difficulty (130% to 250%)
-- **Smart Scheduling**: Prevents the same card from appearing multiple times in one session
+- **Simple 2-Button System**: Just mark cards as correct or incorrect
+- **Intuitive Gestures**:
+  - **Swipe Left / ←** - Mark as incorrect
+  - **Swipe Right / →** - Mark as correct
+- **3 Simple Statuses**:
+  - **New**: Cards you haven't started learning yet
+  - **Learning**: Cards you're actively memorizing (1 min → 10 min steps)
+  - **Learned**: Cards you've successfully learned with increasing intervals
+- **Smart Intervals**:
+  - Correct answers multiply interval by 2.5x
+  - Incorrect answers reduce interval by 75%
+  - Cards that fail go back to learning phase
+- **No Duplicates**: Cards won't repeat in the same session
 
 ### 📚 Core Features
 
 - **Add Cards**: Create flashcards with English, Vietnamese, examples, and phonetics
 - **Cambridge Dictionary Integration**: Auto-fetch word definitions and examples
 - **Text-to-Speech**: Pronunciation support for words and example sentences
-- **Mobile-First Design**: Optimized for smartphones with responsive layout
+- **Mobile-First Design**: Optimized for smartphones with swipe gestures
 - **Real-time Statistics**: Track your learning progress
 
-### ⌨️ Keyboard Shortcuts
+### ⌨️ Controls
 
 During review:
 
 - **Any key**: Flip card (when showing front)
-- **1**: Again
-- **2**: Hard
-- **3**: Good
-- **Space/Enter**: Good (default)
-- **4**: Easy
-- **↑/↓**: Flip back to front
+- **Arrow Left (←)**: Mark as incorrect
+- **Arrow Right (→)**: Mark as correct
+- **Swipe Left**: Mark as incorrect
+- **Swipe Right**: Mark as correct
 
 ## Algorithm Diagrams
 
-### 1. Spaced Repetition Flow
+### 1. Simplified Learning Flow
 
-This diagram shows the learning and review flow for a single card, including learning, review, and relearning steps:
+This diagram shows the streamlined learning process with just two possible actions at each step:
 
 ```mermaid
 graph TB
     Start["🆕 New Card"] --> Learning1["📚 Learning<br/>(1 minute)"]
 
-    Learning1 -->|"😕 Again"| Learning1
-    Learning1 -->|"😐 Hard"| Learning1
-    Learning1 -->|"🙂 Good"| Learning2["📚 Learning<br/>(10 minutes)"]
-    Learning1 -->|"😊 Easy"| Graduated["✅ Review<br/>(4 days)"]
+    Learning1 -->|"❌ Incorrect"| Learning1
+    Learning1 -->|"✅ Correct"| Learning2["📚 Learning<br/>(10 minutes)"]
 
-    Learning2 -->|"😕 Again"| Learning1
-    Learning2 -->|"😐 Hard"| Learning2
-    Learning2 -->|"🙂 Good"| GraduatedNormal["✅ Review<br/>(1 day)"]
-    Learning2 -->|"😊 Easy"| Graduated
+    Learning2 -->|"❌ Incorrect"| Learning1
+    Learning2 -->|"✅ Correct"| Learned["✅ Learned<br/>(1 day)"]
 
-    GraduatedNormal -->|"😕 Again"| Relearning["🔄 Relearning<br/>(10 minutes)"]
-    GraduatedNormal -->|"😐 Hard"| Review1["✅ Review<br/>(1.2 days)"]
-    GraduatedNormal -->|"🙂 Good"| Review2["✅ Review<br/>(2.5 days)"]
-    GraduatedNormal -->|"😊 Easy"| Review3["✅ Review<br/>(3.25 days)"]
+    Learned -->|"❌ Incorrect<br/>(interval × 0.25)"| CheckInterval{"Interval < 1 day?"}
+    Learned -->|"✅ Correct<br/>(interval × 2.5)"| NextReview["✅ Learned<br/>(2.5 days → 6.25 days → ...)"]
 
-    Graduated -->|"😕 Again"| Relearning
-    Review1 -->|"😕 Again"| Relearning
-    Review2 -->|"😕 Again"| Relearning
-    Review3 -->|"😕 Again"| Relearning
+    CheckInterval -->|"Yes"| BackToLearning["📚 Back to Learning<br/>(1 minute)"]
+    CheckInterval -->|"No"| ReducedInterval["✅ Learned<br/>(Reduced interval)"]
 
-    Relearning -->|"😕 Again"| Relearning
-    Relearning -->|"😐/🙂/😊"| BackToReview["✅ Back to Review<br/>(Previous interval)"]
-
-    Review2 -->|"🙂 Good"| LongerIntervals["✅ Review<br/>(6.25 days → 15.6 days → ...)"]
+    BackToLearning --> Learning1
+    NextReview -->|"✅ Correct"| LongerIntervals["✅ Learned<br/>(15.6 days → 39 days → ...)"]
 
     classDef newCard fill:#3b82f6,stroke:#2563eb,color:#fff
     classDef learning fill:#eab308,stroke:#ca8a04,color:#000
-    classDef review fill:#22c55e,stroke:#16a34a,color:#fff
-    classDef relearning fill:#ef4444,stroke:#dc2626,color:#fff
+    classDef learned fill:#22c55e,stroke:#16a34a,color:#fff
 
     class Start newCard
-    class Learning1,Learning2 learning
-    class Graduated,GraduatedNormal,Review1,Review2,Review3,LongerIntervals,BackToReview review
-    class Relearning relearning
+    class Learning1,Learning2,BackToLearning learning
+    class Learned,NextReview,LongerIntervals,ReducedInterval learned
 ```
 
-### 2. Key Components of the Algorithm
+### 2. Simplified Algorithm Components
 
-This diagram shows the main properties, user actions, and features that drive the scheduling algorithm:
+This diagram shows the core components of the simplified algorithm:
 
 ```mermaid
 graph LR
     subgraph "Card Properties"
-        Status["Status"]
-        Interval["Interval (days)"]
-        EaseFactor["Ease Factor<br/>(1.3 - 2.5)"]
-        StepIndex["Step Index"]
-        Lapses["Lapses Count"]
+        Status["Status<br/>(3 states)"]
+        Interval["Interval<br/>(days)"]
+        StepIndex["Learning Step<br/>(0-1)"]
     end
 
-    subgraph "User Response"
-        Again["😕 Again<br/>(Forgot)"]
-        Hard["😐 Hard<br/>(Difficult)"]
-        Good["🙂 Good<br/>(Normal)"]
-        Easy["😊 Easy<br/>(Very Easy)"]
+    subgraph "User Actions"
+        Incorrect["❌ Incorrect<br/>(Swipe Left / ←)"]
+        Correct["✅ Correct<br/>(Swipe Right / →)"]
     end
 
-    subgraph "Algorithm Features"
+    subgraph "Algorithm Rules"
+        Multiplier["Fixed Multipliers<br/>(2.5x / 0.25x)"]
         LearningSteps["Learning Steps<br/>(1min → 10min)"]
-        RelearningSteps["Relearning Steps<br/>(10min)"]
-        SessionQueue["Session Queue<br/>(No immediate repeats)"]
-        IntervalGrowth["Interval Growth<br/>(Based on ease)"]
+        SessionQueue["Session Queue<br/>(No repeats)"]
     end
 
-    Status --> Algorithm["Scheduling<br/>Algorithm"]
+    Status --> Algorithm["Simple<br/>Scheduler"]
     Interval --> Algorithm
-    EaseFactor --> Algorithm
     StepIndex --> Algorithm
 
-    Again --> Algorithm
-    Hard --> Algorithm
-    Good --> Algorithm
-    Easy --> Algorithm
+    Incorrect --> Algorithm
+    Correct --> Algorithm
 
     Algorithm --> NextReview["Next Review<br/>Scheduled"]
-    Algorithm --> UpdatedCard["Updated Card<br/>Properties"]
+    Algorithm --> UpdatedStatus["Updated<br/>Status"]
 
+    Multiplier --> Algorithm
     LearningSteps --> Algorithm
-    RelearningSteps --> Algorithm
     SessionQueue --> Algorithm
-    IntervalGrowth --> Algorithm
 
     classDef input fill:#94a3b8,stroke:#64748b,color:#000
-    classDef response fill:#fbbf24,stroke:#f59e0b,color:#000
-    classDef feature fill:#60a5fa,stroke:#3b82f6,color:#000
+    classDef action fill:#fbbf24,stroke:#f59e0b,color:#000
+    classDef rule fill:#60a5fa,stroke:#3b82f6,color:#000
     classDef output fill:#86efac,stroke:#22c55e,color:#000
 
-    class Status,Interval,EaseFactor,StepIndex,Lapses input
-    class Again,Hard,Good,Easy response
-    class LearningSteps,RelearningSteps,SessionQueue,IntervalGrowth feature
-    class NextReview,UpdatedCard output
+    class Status,Interval,StepIndex input
+    class Incorrect,Correct action
+    class Multiplier,LearningSteps,SessionQueue rule
+    class NextReview,UpdatedStatus output
 ```
 
 ---
@@ -178,26 +155,25 @@ pnpm preview
 
 ## How the Algorithm Works
 
-### Interval Calculation
+### Simple Progression
 
-The algorithm calculates the next review interval based on:
+The algorithm uses fixed multipliers for predictable behavior:
 
-1. **Current interval**: How long since the last review
-2. **Ease factor**: Card-specific difficulty modifier (1.3 to 2.5)
-3. **Your response**: Again/Hard/Good/Easy
+1. **Correct answer**: Interval × 2.5
+2. **Incorrect answer**: Interval × 0.25
 
-### Learning Steps
+### Learning Phase
 
-- **New cards**: 1 minute → 10 minutes → 1 day (graduated)
-- **Failed cards**: 10 minutes → back to review
-- **Easy button**: Skips learning steps, sets 4-day initial interval
+- **Step 1**: Review after 1 minute
+- **Step 2**: Review after 10 minutes
+- **Graduation**: Review after 1 day
 
 ### Example Progression
 
 ```
-New Card → Good (1 min) → Good (10 min) → Good (1 day) → Good (2.5 days) → Good (6 days) → ...
-         ↓ Again                          ↓ Again
-    Back to 1 min                   Relearning (10 min)
+New → Correct (1 min) → Correct (10 min) → Correct (1 day) → Correct (2.5 days) → Correct (6.25 days) → ...
+     ↓ Incorrect                            ↓ Incorrect (if < 1 day)
+     Back to 1 min                          Back to Learning
 ```
 
 ## Technology Stack
@@ -211,7 +187,7 @@ New Card → Good (1 min) → Good (10 min) → Good (1 day) → Good (2.5 days)
 
 ## Data Storage
 
-All data is stored locally in the browser's localStorage. Cards are automatically migrated from older formats to the new algorithm structure.
+All data is stored locally in the browser's localStorage. Cards are automatically migrated from older formats to the new simplified algorithm structure.
 
 ## Contributing
 
@@ -235,8 +211,8 @@ MIT
   - If you see a message like `Port 5173 is in use, trying another one...`, Vite will automatically try the next available port (e.g., 5174).
   - To specify a port manually, run: `pnpm dev -- --port=5180`
 
-## New Features
+## Features
 
-- You can now **edit** any flashcard by clicking the pencil icon on the Home screen. This opens the edit form, pre-filled with the card's data.
-- You can now **delete** any flashcard by clicking the trash icon on the Home screen. You will be asked to confirm before deletion.
-- The add card form is now also used for editing cards. The edit route is `/edit/:id`.
+- You can **edit** any flashcard by clicking the pencil icon on the Home screen. This opens the edit form, pre-filled with the card's data.
+- You can **delete** any flashcard by clicking the trash icon on the Home screen. You will be asked to confirm before deletion.
+- The add card form is also used for editing cards. The edit route is `/edit/:id`.

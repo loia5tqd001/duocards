@@ -11,7 +11,7 @@ import {
 import type { Card, CardGrade } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
 import VolumeButton from '@/components/ui/VolumeButton';
-import { FaEdit } from 'react-icons/fa';
+import { FaEdit, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 
 function ReviewCardFront({
   card,
@@ -137,6 +137,10 @@ export default function ReviewCard() {
   const [shouldAutoPlay, setShouldAutoPlay] = useState(true);
   // Track if flip animation should be enabled
   const [shouldAnimateFlip, setShouldAnimateFlip] = useState(false);
+  // Track touch start position for swipe detection
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(
+    null
+  );
 
   // Clear session queue when component mounts (new review session)
   useEffect(() => {
@@ -156,20 +160,11 @@ export default function ReviewCard() {
         setFlipped(true);
         setShouldAutoPlay(false);
       } else {
-        // On back - map keys to grades
-        if (e.key === '1') {
-          handleReview('again');
-        } else if (e.key === '2') {
-          handleReview('hard');
-        } else if (e.key === '3') {
-          handleReview('good');
-        } else if (e.key === '4') {
-          handleReview('easy');
-        } else if (e.key === ' ' || e.key === 'Enter') {
-          handleReview('good'); // Space/Enter defaults to 'good'
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-          setFlipped(false);
-          setShouldAutoPlay(false);
+        // On back - arrow keys for grading
+        if (e.key === 'ArrowLeft') {
+          handleReview('incorrect');
+        } else if (e.key === 'ArrowRight') {
+          handleReview('correct');
         }
       }
     }
@@ -177,6 +172,43 @@ export default function ReviewCard() {
     return () => document.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flipped, card]);
+
+  // Touch handlers for swipe gestures
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!flipped) return; // Only allow swipes when card is flipped
+    setTouchStart({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    });
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart || !flipped) return;
+
+    const touchEnd = {
+      x: e.changedTouches[0].clientX,
+      y: e.changedTouches[0].clientY,
+    };
+
+    const dx = touchEnd.x - touchStart.x;
+    const dy = touchEnd.y - touchStart.y;
+
+    // Minimum swipe distance
+    const minSwipeDistance = 50;
+
+    // Check if horizontal swipe is more significant than vertical
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minSwipeDistance) {
+      if (dx > 0) {
+        // Swipe right - correct
+        handleReview('correct');
+      } else {
+        // Swipe left - incorrect
+        handleReview('incorrect');
+      }
+    }
+
+    setTouchStart(null);
+  };
 
   // Helper to format next review time
   function formatNextReview(ts: number) {
@@ -304,7 +336,11 @@ export default function ReviewCard() {
       }
     >
       {/* 3D Flip Card */}
-      <div className='w-full flex items-center justify-center mb-8'>
+      <div
+        className='w-full flex items-center justify-center mb-8'
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <div
           className={`w-full relative flex items-center justify-center max-w-full ${
             shouldAnimateFlip ? 'transition-transform duration-400' : ''
@@ -328,61 +364,41 @@ export default function ReviewCard() {
           />
         </div>
       </div>
-      {/* Action Buttons - 4-button system */}
-      <div className='w-full flex gap-2 mb-4'>
+      {/* Action Buttons - Simplified 2-button system */}
+      <div className='w-full flex gap-4 mb-4'>
         <Button
-          className={`flex-1 text-sm py-3 rounded-xl hover:bg-red-700 focus:bg-red-700 focus-visible:bg-red-700 flex flex-col items-center justify-center gap-1 ${
+          className={`flex-1 text-base py-4 rounded-xl bg-red-500 hover:bg-red-600 focus:bg-red-600 focus-visible:bg-red-600 text-white border-none flex items-center justify-center gap-2 ${
             flipped ? '' : 'opacity-50 pointer-events-none'
           }`}
-          variant='destructive'
-          onClick={() => handleReview('again')}
+          onClick={() => handleReview('incorrect')}
           disabled={!flipped}
         >
-          <span className='text-base'>😕</span>
-          <span>Again</span>
-          <span className='text-xs opacity-80'>1</span>
+          <FaArrowLeft size={20} />
+          <div className='flex flex-col items-center'>
+            <span>Incorrect</span>
+          </div>
         </Button>
         <Button
-          className={`flex-1 text-sm py-3 rounded-xl bg-orange-500 text-white border-none hover:bg-orange-600 focus:bg-orange-600 focus-visible:bg-orange-600 flex flex-col items-center justify-center gap-1 ${
+          className={`flex-1 text-base py-4 rounded-xl bg-green-500 hover:bg-green-600 focus:bg-green-600 focus-visible:bg-green-600 text-white border-none flex items-center justify-center gap-2 ${
             flipped ? '' : 'opacity-50 pointer-events-none'
           }`}
-          onClick={() => handleReview('hard')}
+          onClick={() => handleReview('correct')}
           disabled={!flipped}
         >
-          <span className='text-base'>😐</span>
-          <span>Hard</span>
-          <span className='text-xs opacity-80'>2</span>
-        </Button>
-        <Button
-          className={`flex-1 text-sm py-3 rounded-xl bg-blue-500 text-white border-none hover:bg-blue-600 focus:bg-blue-600 focus-visible:bg-blue-600 flex flex-col items-center justify-center gap-1 ${
-            flipped ? '' : 'opacity-50 pointer-events-none'
-          }`}
-          onClick={() => handleReview('good')}
-          disabled={!flipped}
-        >
-          <span className='text-base'>🙂</span>
-          <span>Good</span>
-          <span className='text-xs opacity-80'>3</span>
-        </Button>
-        <Button
-          className={`flex-1 text-sm py-3 rounded-xl bg-green-500 text-white border-none hover:bg-green-600 focus:bg-green-600 focus-visible:bg-green-600 flex flex-col items-center justify-center gap-1 ${
-            flipped ? '' : 'opacity-50 pointer-events-none'
-          }`}
-          onClick={() => handleReview('easy')}
-          disabled={!flipped}
-        >
-          <span className='text-base'>😊</span>
-          <span>Easy</span>
-          <span className='text-xs opacity-80'>4</span>
+          <div className='flex flex-col items-center'>
+            <span>Correct</span>
+          </div>
+          <FaArrowRight size={20} />
         </Button>
       </div>
       {/* Status and info */}
       <div className='text-xs text-slate-400 text-center space-y-1'>
         <div>
           Status:{' '}
-          <span className='text-slate-700 font-medium'>{card.status}</span>
+          <span className='text-slate-700 font-medium capitalize'>
+            {card.status}
+          </span>
           {card.status === 'learning' && ` (step ${card.stepIndex + 1}/2)`}
-          {card.status === 'relearning' && ` (step ${card.stepIndex + 1}/1)`}
         </div>
         <div>
           Next:{' '}
@@ -390,21 +406,20 @@ export default function ReviewCard() {
             {formatNextReview(card.nextReview)}
           </span>
         </div>
-        {card.status === 'review' && (
+        {card.status === 'learned' && (
           <div>
             Interval:{' '}
             <span className='text-slate-700 font-medium'>
               {Math.round(card.interval)} days
-            </span>{' '}
-            • Ease:{' '}
-            <span className='text-slate-700 font-medium'>
-              {Math.round(card.easeFactor * 100)}%
             </span>
           </div>
         )}
         <div className='text-slate-300 mt-2'>
           {dueCards.length - 1} more cards due
         </div>
+      </div>
+      <div className='text-xs text-slate-300 text-center mt-4'>
+        Swipe left/right or use arrow keys
       </div>
     </PageContainer>
   );

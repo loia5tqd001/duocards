@@ -10,7 +10,8 @@ Review Screen:
   - [ ] English to reveal all
   - [ ] Vietnamese to reveal all
   - [ ] Sounds like to reveal all
-- [ ] Use keyboard to navigate (flip, correct, incorrect, next,...)
+- [x] Use keyboard to navigate (Arrow keys for correct/incorrect)
+- [x] Swipe gestures for card review (left = incorrect, right = correct)
 
 Add Card Screen:
 
@@ -20,7 +21,7 @@ Add Card Screen:
 
 Common:
 
-- [ ] Have correct, optimal Spaced Repetition algorithm
+- [x] Have correct, optimal Spaced Repetition algorithm (simplified 2-button system)
 
 - [x] Migrate all styling to Tailwind CSS (mobile-first, shadcn/ui consistent)
 - [ ] All new UI should use Tailwind utility classes and follow mobile-first design
@@ -37,16 +38,18 @@ Common:
 - [x] Mobile-first responsive design
 - [x] Cambridge dictionary integration
 - [x] Speech synthesis (TTS)
-- [x] **Improved Spaced Repetition Algorithm**
-  - [x] Implemented SM-2 inspired algorithm with 4-button system (Again/Hard/Good/Easy)
-  - [x] Added learning steps (1min, 10min) for new cards
-  - [x] Added relearning steps for forgotten cards
-  - [x] Implemented ease factor tracking for better difficulty assessment
-  - [x] Fixed immediate repetition issue with session queue
-  - [x] Better interval progression based on performance
-  - [x] Card status system: new → learning → review (with relearning for lapses)
+- [x] **Simplified Spaced Repetition Algorithm**
+  - [x] Implemented simple 2-button system (Incorrect/Correct)
+  - [x] Reduced to 3 statuses: New, Learning, Learned
+  - [x] Fixed interval multipliers (2.5x for correct, 0.25x for incorrect)
+  - [x] Learning steps simplified to 1min → 10min → 1 day
+  - [x] Session queue prevents immediate repetition
+  - [x] Cards that fail when interval < 1 day go back to learning
+  - [x] Maximum interval capped at 1 year
 - [x] Delete flashcard from Home screen
 - [x] Edit flashcard from Home screen (reuses AddCard form)
+- [x] Swipe gestures for review (left/right)
+- [x] Arrow key navigation (←/→)
 
 ## 🚧 In Progress
 
@@ -62,17 +65,17 @@ Common:
 
 ### Algorithm Enhancements
 
-- [ ] Adjustable learning steps
-- [ ] Customizable ease factor bonuses
+- [ ] Adjustable learning steps (currently fixed at 1min, 10min)
+- [ ] Customizable interval multipliers (currently fixed at 2.5x/0.25x)
 - [ ] Daily review limits
 - [ ] Review heatmap/statistics
-- [ ] Retention rate tracking
-- [ ] FSRS algorithm option (advanced)
+- [ ] Success rate tracking
+- [ ] Optional advanced algorithm mode (bring back 4-button system)
 
 ### User Experience
 
-- [ ] Swipe gestures for card review
-- [ ] Keyboard shortcuts guide
+- [x] Swipe gestures for card review
+- [ ] Keyboard shortcuts guide overlay
 - [ ] Undo last review action
 - [ ] Review timer
 - [ ] Study streaks tracking
