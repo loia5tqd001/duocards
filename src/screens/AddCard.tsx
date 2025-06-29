@@ -6,6 +6,7 @@ import { FaTimes } from 'react-icons/fa';
 import { speak } from '../lib/utils';
 import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import VolumeButton from '@/components/ui/VolumeButton';
+import { useNavigate } from 'react-router-dom';
 
 // Info type for Cambridge info
 type Info = {
@@ -24,6 +25,7 @@ export default function AddCard() {
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const navigate = useNavigate();
 
   // Debounced fetch for Cambridge info and translation
   useEffect(() => {
@@ -90,7 +92,31 @@ export default function AddCard() {
   };
 
   return (
-    <PageContainer title='📝 Add New Card' showBack={true}>
+    <PageContainer
+      title='📝 Add New Card'
+      leftButton={
+        <Button
+          variant='outline'
+          size='icon'
+          className='rounded-lg w-10 h-10 min-w-0'
+          onClick={() => navigate('/')}
+          aria-label='Back to Home'
+        >
+          <span className='text-xl'>🏠</span>
+        </Button>
+      }
+      rightButton={
+        <Button
+          variant='outline'
+          size='icon'
+          className='rounded-lg w-10 h-10 min-w-0'
+          onClick={() => navigate('/review')}
+          aria-label='Go to Review'
+        >
+          <span className='text-xl'>📖</span>
+        </Button>
+      }
+    >
       <div className='flex flex-col gap-4'>
         <div className='pt-1'>
           <label htmlFor='english' className='font-bold text-sm'>

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus } from 'react-icons/fa';
 import { getDueCards, scheduleNext, updateCard, speak } from '../lib/utils';
 import type { Card } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
@@ -192,7 +191,31 @@ export default function ReviewCard() {
 
   if (!card) {
     return (
-      <PageContainer title='📖 Review Cards' showBack={true}>
+      <PageContainer
+        title='📖 Review Cards'
+        leftButton={
+          <Button
+            variant='outline'
+            size='icon'
+            className='rounded-lg w-10 h-10 min-w-0'
+            onClick={() => navigate('/')}
+            aria-label='Back to Home'
+          >
+            <span className='text-xl'>🏠</span>
+          </Button>
+        }
+        rightButton={
+          <Button
+            variant='outline'
+            size='icon'
+            className='rounded-lg w-10 h-10 min-w-0'
+            onClick={() => navigate('/add')}
+            aria-label='Add Card'
+          >
+            <span className='text-xl'>📝</span>
+          </Button>
+        }
+      >
         <div className='flex flex-col items-center justify-center flex-1'>
           <div className='text-xl font-semibold text-slate-400 mb-4'>
             No cards to review right now!
@@ -218,7 +241,17 @@ export default function ReviewCard() {
   return (
     <PageContainer
       title='📖 Review Cards'
-      showBack={true}
+      leftButton={
+        <Button
+          variant='outline'
+          size='icon'
+          className='rounded-lg w-10 h-10 min-w-0'
+          onClick={() => navigate('/')}
+          aria-label='Back to Home'
+        >
+          <span className='text-xl'>🏠</span>
+        </Button>
+      }
       rightButton={
         <Button
           variant='outline'
@@ -227,7 +260,7 @@ export default function ReviewCard() {
           onClick={() => navigate('/add')}
           aria-label='Add Card'
         >
-          <FaPlus size={20} />
+          <span className='text-xl'>📝</span>
         </Button>
       }
     >

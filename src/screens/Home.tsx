@@ -1,12 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
-import {
-  FaBook,
-  FaCheckCircle,
-  FaLightbulb,
-  FaPlay,
-  FaPlus,
-} from 'react-icons/fa';
+import { FaBook, FaCheckCircle, FaLightbulb } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import type { Card } from '../lib/utils';
 import { getAllCards, getStats } from '../lib/utils';
@@ -56,7 +50,7 @@ function Home() {
   ];
 
   return (
-    <PageContainer title='📚 Duocards'>
+    <PageContainer title='🏠 Duocards'>
       <div className='flex gap-2 justify-between mb-6'>
         {statList.map((s) => (
           <div
@@ -79,16 +73,14 @@ function Home() {
           className='w-full text-base py-3 rounded-xl'
           onClick={() => navigate('/review')}
         >
-          <FaPlay />
-          Start Review
+          📖 Start Review
         </Button>
         <Button
           variant='outline'
           className='w-full text-base py-3 rounded-xl'
           onClick={() => navigate('/add')}
         >
-          <FaPlus />
-          Add Card
+          📝 Add Card
         </Button>
       </div>
       {/* Card List */}
