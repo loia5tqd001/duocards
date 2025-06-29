@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/cambridge/[word].js": {
+      "runtime": "@vercel/node"
+    }
+  }
+}
