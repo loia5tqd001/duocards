@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { FaSyncAlt, FaPlus } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa';
 import { getDueCards, scheduleNext, updateCard, speak } from '../lib/utils';
 import type { Card } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
@@ -13,13 +13,14 @@ function ReviewCardFront({
   speak,
 }: {
   card: Card;
-  onFlip: () => void;
+  onFlip: (e: React.MouseEvent) => void;
   speak: (text: string) => void;
 }) {
   return (
     <div
       className='absolute w-full h-full top-0 left-0 bg-white rounded-xl shadow flex flex-col items-center justify-center p-6 backface-hidden overflow-y-auto max-h-full'
       style={{ backfaceVisibility: 'hidden' }}
+      onClick={onFlip}
     >
       <style>{`.review-card::-webkit-scrollbar { display: none; }`}</style>
       <div className='review-card w-full'>
@@ -29,22 +30,13 @@ function ReviewCardFront({
         <div className='text-slate-400 text-lg mb-2 font-medium flex items-center justify-center'>
           {card.phonetic}
           <VolumeButton
-            onClick={() => speak(card.english || '')}
+            onClick={() => {
+              speak(card.english || '');
+            }}
             ariaLabel='Play word audio'
             size={18}
             significant={true}
           />
-        </div>
-        <div className='flex gap-4 mb-2 justify-center'>
-          <Button
-            variant='outline'
-            size='icon'
-            className='rounded-lg w-10 h-10 min-w-0'
-            onClick={onFlip}
-            aria-label='Flip card'
-          >
-            <FaSyncAlt size={20} />
-          </Button>
         </div>
       </div>
     </div>
@@ -57,7 +49,7 @@ function ReviewCardBack({
   speak,
 }: {
   card: Card;
-  onFlip: () => void;
+  onFlip: (e: React.MouseEvent) => void;
   speak: (text: string) => void;
 }) {
   return (
@@ -67,6 +59,7 @@ function ReviewCardBack({
         backfaceVisibility: 'hidden',
         transform: 'rotateY(180deg)',
       }}
+      onClick={onFlip}
     >
       <style>{`.review-card::-webkit-scrollbar { display: none; }`}</style>
       <div className='review-card w-full flex flex-col items-center'>
@@ -78,7 +71,9 @@ function ReviewCardBack({
         <div className='text-slate-400 text-lg mb-2 font-medium flex items-center justify-center'>
           {card.phonetic}
           <VolumeButton
-            onClick={() => speak(card.english || '')}
+            onClick={() => {
+              speak(card.english || '');
+            }}
             ariaLabel='Play word audio'
             size={18}
             significant={false}
@@ -95,7 +90,9 @@ function ReviewCardBack({
             <div className='flex items-center'>
               {card.example}
               <VolumeButton
-                onClick={() => speak(card.example || '')}
+                onClick={() => {
+                  speak(card.example || '');
+                }}
                 ariaLabel='Play example audio'
                 size={16}
                 significant={false}
@@ -104,15 +101,6 @@ function ReviewCardBack({
             </div>
           </div>
         )}
-        <Button
-          variant='outline'
-          size='icon'
-          className='rounded-lg w-10 h-10 min-w-0 mt-2'
-          onClick={onFlip}
-          aria-label='Flip card back'
-        >
-          <FaSyncAlt size={20} />
-        </Button>
       </div>
     </div>
   );

@@ -37,7 +37,10 @@ const VolumeButton: React.FC<VolumeButtonProps> = ({
         `inline-flex items-center justify-center ${colorClass} ${className}`.trim() +
         ' rounded-lg p-0 w-5 h-5 min-w-0'
       }
-      onClick={onClick}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (onClick) onClick();
+      }}
       aria-label={ariaLabel}
       tabIndex={tabIndex}
       title={title}
