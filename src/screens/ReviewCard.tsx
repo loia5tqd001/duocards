@@ -405,6 +405,7 @@ export default function ReviewCard() {
           <span className='text-xl'>📝</span>
         </Button>
       }
+      className={'overflow-hidden'}
     >
       {/* Swipe hints */}
       <div className='relative w-full flex items-center justify-center mb-8'>
