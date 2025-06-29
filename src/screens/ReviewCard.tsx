@@ -295,10 +295,13 @@ export default function ReviewCard() {
 
   // Touch event handlers
   const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
     handleStart(e.touches[0].clientX);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     handleMove(e.touches[0].clientX);
   };
 
@@ -309,10 +312,13 @@ export default function ReviewCard() {
   // Mouse event handlers for desktop
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     handleStart(e.clientX);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     handleMove(e.clientX);
   };
 
