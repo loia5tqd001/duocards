@@ -117,3 +117,19 @@ export function speak(text: string) {
     window.speechSynthesis.speak(utter);
   }
 }
+
+/**
+ * Returns a human-readable string for the time until the given timestamp (ms).
+ * E.g. 'in 2 hours', 'in 1 day', 'now'.
+ */
+export function formatTimeUntil(timestamp: number): string {
+  const now = Date.now();
+  const diff = timestamp - now;
+  if (diff <= 0) return 'now';
+  const minutes = Math.round(diff / 60000);
+  if (minutes < 60) return `in ${minutes} min${minutes === 1 ? '' : 's'}`;
+  const hours = Math.round(diff / 3600000);
+  if (hours < 24) return `in ${hours} hour${hours === 1 ? '' : 's'}`;
+  const days = Math.round(diff / 86400000);
+  return `in ${days} day${days === 1 ? '' : 's'}`;
+}

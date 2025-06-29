@@ -69,3 +69,7 @@ A mobile-first textarea component that automatically grows from 1 to 3 rows base
 ### VolumeButton
 
 A reusable button component for playing audio, wrapping the FaVolumeUp icon. Supports 'significant' (blue) and 'default' (shadow/black) color modes for consistent UI/UX. Used throughout the app for all audio play actions.
+
+## Features
+
+- Home screen shows a list of your cards, with status and how long until next review (if not due now).

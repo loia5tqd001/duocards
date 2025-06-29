@@ -1,7 +1,7 @@
 Home Screen:
 
 - [ ] Click to familiarity type to filter the list of cards
-- [ ] State how much time until next review of each card
+- [x] Show how long until next review for each card in the Home screen list
 - [ ] Consider revamp the UI to be cleaner
 
 Review Screen:

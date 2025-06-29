@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { FaBook, FaCheckCircle, FaLightbulb } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import type { Card } from '../lib/utils';
-import { getAllCards, getStats } from '../lib/utils';
+import { getAllCards, getStats, formatTimeUntil } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
 
 function Home() {
@@ -140,7 +140,18 @@ function Home() {
                 key={card.id}
                 className='flex justify-between items-center py-2 border-b border-slate-100 text-base'
               >
-                <span className='font-semibold'>{card.english}</span>
+                <div className='flex flex-col'>
+                  <span className='font-semibold'>{card.english}</span>
+                  {card.nextReview > Date.now() ? (
+                    <span className='text-xs text-slate-400 mt-0.5'>
+                      {formatTimeUntil(card.nextReview)}
+                    </span>
+                  ) : (
+                    <span className='text-xs text-green-600 font-semibold mt-0.5'>
+                      Ready to review!
+                    </span>
+                  )}
+                </div>
                 <span
                   className={
                     `text-xs font-medium rounded-lg px-2 py-0.5 ml-2 ` +
