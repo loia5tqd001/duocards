@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "nodemon cambridge-proxy.js",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "dev:proxy": "nodemon cambridge-proxy.js"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

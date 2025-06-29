@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { addCard as addCardToStorage } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
+import { FaVolumeUp, FaTimes } from 'react-icons/fa';
+import { speak } from '../lib/utils';
+import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 
 // Info type for Cambridge info
 type Info = {
@@ -11,6 +14,7 @@ type Info = {
   partOfSpeech: string;
   definitions: string[];
   examples: string[];
+  vietnameseTranslations: string[];
 };
 
 export default function AddCard() {
@@ -47,14 +51,16 @@ export default function AddCard() {
       if (!res.ok) throw new Error('Not found');
       const data = await res.json();
       setInfo({
-        word: data.word,
+        word: data.word || word,
         phonetic: data.phonetic,
         audio: '', // You can extend the proxy to return audio URLs if needed
         partOfSpeech: data.partOfSpeech,
         definitions: data.definitions,
         examples: data.examples,
+        vietnameseTranslations: data.vietnameseTranslations,
       });
       setVietnamese(data.mainVietnamese || '');
+      setExample(data.examples?.[0] || '');
     } catch (e) {
       console.error(e);
       setInfo(null);
@@ -90,45 +96,161 @@ export default function AddCard() {
   return (
     <PageContainer title='📝 Add New Card' showBack={true}>
       <div className='flex flex-col gap-4'>
-        <div>
-          <label htmlFor='english' className='font-medium text-sm'>
+        <div className='pt-1'>
+          <label htmlFor='english' className='font-bold text-sm'>
             English
           </label>
-          <input
-            id='english'
-            type='text'
-            value={english}
-            onChange={handleEnglishChange}
-            placeholder='Enter English word'
-            className='w-full p-3 rounded-lg border border-slate-200 mt-1 text-base focus:outline-none focus:ring-2 focus:ring-primary'
-            autoFocus
-          />
+          <div className='relative flex items-center'>
+            <input
+              id='english'
+              type='text'
+              value={english}
+              onChange={handleEnglishChange}
+              placeholder='Enter English word'
+              className={`w-full p-3 rounded-lg border text-base focus:outline-none pr-10 ${
+                english ? 'border-blue-500' : 'border-slate-200'
+              }`}
+              autoFocus
+            />
+            {/* {english && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
+                onClick={() => {
+                  setEnglish('');
+                  setInfo(null);
+                  setAdded(false);
+                }}
+                aria-label='Clear English input'
+                title='Clear English input'
+                tabIndex={-1}
+              >
+                <FaTimes size={14} />
+              </Button>
+            )} */}
+          </div>
+          {info && (
+            <div className='font-semibold text-lg mb-1 mt-1 flex items-center gap-2'>
+              <span className='text-slate-400 text-sm'>{info.phonetic}</span>
+              <button
+                className='inline-flex items-center justify-center text-blue-500 hover:text-blue-700 focus:outline-none'
+                onClick={() => speak(info.word)}
+                aria-label='Play word audio'
+                type='button'
+              >
+                <FaVolumeUp size={18} />
+              </button>
+            </div>
+          )}
         </div>
-        <div>
-          <label htmlFor='vietnamese' className='font-medium text-sm'>
+        <div className='pt-1'>
+          <label htmlFor='vietnamese' className='font-bold text-sm'>
             Vietnamese
           </label>
-          <input
-            id='vietnamese'
-            type='text'
-            value={vietnamese}
-            onChange={(e) => setVietnamese(e.target.value)}
-            placeholder='Vietnamese translation'
-            className='w-full p-3 rounded-lg border border-slate-200 mt-1 text-base focus:outline-none focus:ring-2 focus:ring-primary'
-          />
+          <div className='relative flex items-center'>
+            <input
+              id='vietnamese'
+              type='text'
+              value={vietnamese}
+              onChange={(e) => setVietnamese(e.target.value)}
+              placeholder='Vietnamese translation'
+              className={`w-full p-3 rounded-lg border text-base focus:outline-none pr-10 ${
+                vietnamese ? 'border-blue-500' : 'border-slate-200'
+              }`}
+            />
+            {/* {vietnamese && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
+                onClick={() => setVietnamese('')}
+                aria-label='Clear Vietnamese input'
+                title='Clear Vietnamese input'
+                tabIndex={-1}
+              >
+                <FaTimes size={14} />
+              </Button>
+            )} */}
+          </div>
+          {/* Chips for Vietnamese translation suggestions */}
+          {info &&
+            Array.isArray(info.vietnameseTranslations) &&
+            info.vietnameseTranslations.length > 0 && (
+              <div className='flex flex-wrap gap-2 mt-2'>
+                {info.vietnameseTranslations.map((vi, i) => (
+                  <button
+                    key={i}
+                    type='button'
+                    className={`px-3 py-1 rounded-full border text-xs transition-colors cursor-pointer
+                    ${
+                      vietnamese === vi
+                        ? 'border-primary text-primary bg-white'
+                        : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                    }
+                  `}
+                    onClick={() => setVietnamese(vi)}
+                  >
+                    {vi}
+                  </button>
+                ))}
+              </div>
+            )}
         </div>
-        <div>
-          <label htmlFor='example' className='font-medium text-sm'>
+        <div className='pt-1'>
+          <label htmlFor='example' className='font-bold text-sm'>
             Example (optional)
           </label>
-          <input
-            id='example'
-            type='text'
-            value={example}
-            onChange={(e) => setExample(e.target.value)}
-            placeholder='Example sentence (English)'
-            className='w-full p-3 rounded-lg border border-slate-200 mt-1 text-base focus:outline-none focus:ring-2 focus:ring-primary'
-          />
+          <div className='relative flex items-center'>
+            <AutoGrowTextarea
+              id='example'
+              value={example}
+              onChange={(e) => setExample(e.target.value)}
+              placeholder='Example sentence (English)'
+              minRows={1}
+              maxRows={3}
+              className={`resize-none ${
+                example ? 'border-blue-500' : 'border-slate-200'
+              }`}
+            />
+            {example && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
+                onClick={() => setExample('')}
+                aria-label='Clear Example input'
+                title='Clear Example input'
+                tabIndex={-1}
+              >
+                <FaTimes size={14} />
+              </Button>
+            )}
+          </div>
+          {/* Chips for example suggestions */}
+          {info && Array.isArray(info.examples) && info.examples.length > 0 && (
+            <div className='flex flex-wrap gap-2 mt-2'>
+              {info.examples.map((ex, i) => (
+                <button
+                  key={i}
+                  type='button'
+                  className={`px-3 py-1 rounded-full border text-xs transition-colors cursor-pointer
+                    ${
+                      example === ex
+                        ? 'border-primary text-primary bg-white'
+                        : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                    }
+                  `}
+                  onClick={() => setExample(ex)}
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <Button
           className='w-full text-base py-3 rounded-xl mt-2'
@@ -141,33 +263,6 @@ export default function AddCard() {
           <div className='text-green-500 text-center font-medium'>Added!</div>
         )}
       </div>
-      {/* Cambridge Info Card */}
-      {info && (
-        <div className='mt-6 bg-white rounded-lg shadow p-4'>
-          <div className='font-semibold text-lg mb-1'>
-            {info.word}{' '}
-            <span className='text-slate-400 text-sm'>{info.phonetic}</span>
-          </div>
-          <div className='text-blue-600 font-medium text-xs mb-1'>
-            {info.partOfSpeech}
-          </div>
-          <ul className='pl-4 mb-2'>
-            {info.definitions.map((d: string, i: number) => (
-              <li key={i} className='text-sm mb-1'>
-                {d}
-              </li>
-            ))}
-          </ul>
-          <div className='text-xs text-slate-500 mb-1'>Examples:</div>
-          <ul className='pl-4'>
-            {info.examples.map((ex: string, i: number) => (
-              <li key={i} className='text-xs text-slate-700 mb-1'>
-                {ex}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </PageContainer>
   );
 }

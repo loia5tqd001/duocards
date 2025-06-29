@@ -2,17 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { FaVolumeUp, FaSyncAlt, FaPlus } from 'react-icons/fa';
-import { getDueCards, scheduleNext, updateCard } from '../lib/utils';
+import { getDueCards, scheduleNext, updateCard, speak } from '../lib/utils';
 import type { Card } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
-
-function speak(text: string) {
-  if ('speechSynthesis' in window) {
-    const utter = new window.SpeechSynthesisUtterance(text);
-    utter.lang = 'en-US';
-    window.speechSynthesis.speak(utter);
-  }
-}
 
 export default function ReviewCard() {
   const navigate = useNavigate();

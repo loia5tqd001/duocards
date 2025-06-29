@@ -110,3 +110,12 @@ export function getStats() {
     learned: cards.filter((c) => c.status === 'learned').length,
   };
 }
+
+export function speak(text: string) {
+  console.log('>> speak', text);
+  if ('speechSynthesis' in window) {
+    const utter = new window.SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    window.speechSynthesis.speak(utter);
+  }
+}

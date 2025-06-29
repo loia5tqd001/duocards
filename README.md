@@ -28,15 +28,15 @@ export default tseslint.config({
       tsconfigRootDir: import.meta.dirname,
     },
   },
-})
+});
 ```
 
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
 ```js
 // eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+import reactX from 'eslint-plugin-react-x';
+import reactDom from 'eslint-plugin-react-dom';
 
 export default tseslint.config({
   plugins: {
@@ -50,5 +50,18 @@ export default tseslint.config({
     ...reactX.configs['recommended-typescript'].rules,
     ...reactDom.configs.recommended.rules,
   },
-})
+});
 ```
+
+## Styling
+
+This project uses [Tailwind CSS](https://tailwindcss.com/) for all styling. All UI is designed mobile-first and enhanced for desktop. Custom styles are minimized in favor of utility classes. shadcn/ui components are used for consistent design.
+
+- Audio pronunciation button added beside IPA phonetic in Add Card screen.
+- Users can toggle audio speed (0.7x, 1x, 1.3x) by clicking the speed label next to the audio button.
+
+## Components
+
+### AutoGrowTextarea
+
+A mobile-first textarea component that automatically grows from 1 to 3 rows based on content, used in the Add Card screen for the example field. Follows shadcn/ui design system.
