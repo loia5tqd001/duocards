@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { getDueCards, scheduleNext, updateCard, speak } from '../lib/utils';
-import type { Card } from '../lib/utils';
+import {
+  getDueCards,
+  scheduleNext,
+  updateCard,
+  speak,
+  clearSessionQueue,
+} from '../lib/utils';
+import type { Card, CardGrade } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
 import VolumeButton from '@/components/ui/VolumeButton';
 
@@ -117,6 +123,13 @@ export default function ReviewCard() {
   // Track if flip animation should be enabled
   const [shouldAnimateFlip, setShouldAnimateFlip] = useState(false);
 
+  // Clear session queue when component mounts (new review session)
+  useEffect(() => {
+    clearSessionQueue();
+    // Re-fetch due cards after clearing session
+    setDueCards(getDueCards());
+  }, []);
+
   // Keyboard navigation
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -128,11 +141,17 @@ export default function ReviewCard() {
         setFlipped(true);
         setShouldAutoPlay(false);
       } else {
-        // On back
-        if (e.key === 'ArrowLeft') {
-          handleReview(false);
-        } else if (e.key === 'ArrowRight') {
-          handleReview(true);
+        // On back - map keys to grades
+        if (e.key === '1') {
+          handleReview('again');
+        } else if (e.key === '2') {
+          handleReview('hard');
+        } else if (e.key === '3') {
+          handleReview('good');
+        } else if (e.key === '4') {
+          handleReview('easy');
+        } else if (e.key === ' ' || e.key === 'Enter') {
+          handleReview('good'); // Space/Enter defaults to 'good'
         } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
           setFlipped(false);
           setShouldAutoPlay(false);
@@ -176,17 +195,22 @@ export default function ReviewCard() {
     setShouldAnimateFlip(true); // Enable animation when user flips
   };
 
-  const handleReview = (correct: boolean) => {
+  const handleReview = (grade: CardGrade) => {
     if (!card) return;
-    const updated = scheduleNext(card, correct);
+    const updated = scheduleNext(card, grade);
     updateCard(updated);
     // Move to next card
     const newDueCards = getDueCards();
-    setDueCards(newDueCards);
-    setCurrentIdx(0);
-    setFlipped(false);
-    setShouldAutoPlay(true); // Next card should auto play
-    setShouldAnimateFlip(false); // Disable animation when moving to next card
+    if (newDueCards.length === 0) {
+      // No more cards due
+      navigate('/');
+    } else {
+      setDueCards(newDueCards);
+      setCurrentIdx(0);
+      setFlipped(false);
+      setShouldAutoPlay(true); // Next card should auto play
+      setShouldAnimateFlip(false); // Disable animation when moving to next card
+    }
   };
 
   if (!card) {
@@ -284,40 +308,83 @@ export default function ReviewCard() {
           <ReviewCardBack card={card} onFlip={handleFlip} speak={speak} />
         </div>
       </div>
-      {/* Action Buttons */}
-      <div className='w-full flex gap-3 mb-7'>
+      {/* Action Buttons - 4-button system */}
+      <div className='w-full flex gap-2 mb-4'>
         <Button
-          className={`flex-1 text-base py-3 rounded-xl hover:bg-red-700 focus:bg-red-700 focus-visible:bg-red-700 flex items-center justify-center ${
+          className={`flex-1 text-sm py-3 rounded-xl hover:bg-red-700 focus:bg-red-700 focus-visible:bg-red-700 flex flex-col items-center justify-center gap-1 ${
             flipped ? '' : 'opacity-50 pointer-events-none'
           }`}
           variant='destructive'
-          onClick={() => handleReview(false)}
+          onClick={() => handleReview('again')}
           disabled={!flipped}
         >
-          ⬅️ Incorrect
+          <span className='text-base'>😕</span>
+          <span>Again</span>
+          <span className='text-xs opacity-80'>1</span>
         </Button>
         <Button
-          className={`flex-1 text-base py-3 rounded-xl bg-green-500 text-white border-none hover:bg-green-600 focus:bg-green-600 focus-visible:bg-green-600 flex items-center justify-center ${
+          className={`flex-1 text-sm py-3 rounded-xl bg-orange-500 text-white border-none hover:bg-orange-600 focus:bg-orange-600 focus-visible:bg-orange-600 flex flex-col items-center justify-center gap-1 ${
             flipped ? '' : 'opacity-50 pointer-events-none'
           }`}
-          onClick={() => handleReview(true)}
+          onClick={() => handleReview('hard')}
           disabled={!flipped}
         >
-          Correct ➡️
+          <span className='text-base'>😐</span>
+          <span>Hard</span>
+          <span className='text-xs opacity-80'>2</span>
+        </Button>
+        <Button
+          className={`flex-1 text-sm py-3 rounded-xl bg-blue-500 text-white border-none hover:bg-blue-600 focus:bg-blue-600 focus-visible:bg-blue-600 flex flex-col items-center justify-center gap-1 ${
+            flipped ? '' : 'opacity-50 pointer-events-none'
+          }`}
+          onClick={() => handleReview('good')}
+          disabled={!flipped}
+        >
+          <span className='text-base'>🙂</span>
+          <span>Good</span>
+          <span className='text-xs opacity-80'>3</span>
+        </Button>
+        <Button
+          className={`flex-1 text-sm py-3 rounded-xl bg-green-500 text-white border-none hover:bg-green-600 focus:bg-green-600 focus-visible:bg-green-600 flex flex-col items-center justify-center gap-1 ${
+            flipped ? '' : 'opacity-50 pointer-events-none'
+          }`}
+          onClick={() => handleReview('easy')}
+          disabled={!flipped}
+        >
+          <span className='text-base'>😊</span>
+          <span>Easy</span>
+          <span className='text-xs opacity-80'>4</span>
         </Button>
       </div>
-      {/* Status */}
-      <div className='text-sm text-slate-400 mb-1 text-center font-medium'>
-        Status:{' '}
-        <span className='text-slate-900 font-bold'>
-          {card.status.replace('-', ' ')}
-        </span>
-      </div>
-      <div className='text-sm text-slate-400 text-center font-medium'>
-        Next review:{' '}
-        <span className='text-slate-900 font-bold'>
-          {formatNextReview(card.nextReview)}
-        </span>
+      {/* Status and info */}
+      <div className='text-xs text-slate-400 text-center space-y-1'>
+        <div>
+          Status:{' '}
+          <span className='text-slate-700 font-medium'>{card.status}</span>
+          {card.status === 'learning' && ` (step ${card.stepIndex + 1}/2)`}
+          {card.status === 'relearning' && ` (step ${card.stepIndex + 1}/1)`}
+        </div>
+        <div>
+          Next:{' '}
+          <span className='text-slate-700 font-medium'>
+            {formatNextReview(card.nextReview)}
+          </span>
+        </div>
+        {card.status === 'review' && (
+          <div>
+            Interval:{' '}
+            <span className='text-slate-700 font-medium'>
+              {Math.round(card.interval)} days
+            </span>{' '}
+            • Ease:{' '}
+            <span className='text-slate-700 font-medium'>
+              {Math.round(card.easeFactor * 100)}%
+            </span>
+          </div>
+        )}
+        <div className='text-slate-300 mt-2'>
+          {dueCards.length - 1} more cards due
+        </div>
       </div>
     </PageContainer>
   );

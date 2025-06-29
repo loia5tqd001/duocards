@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
-import { FaBook, FaCheckCircle, FaLightbulb } from 'react-icons/fa';
+import { FaBook, FaCheckCircle, FaLightbulb, FaRedo } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import type { Card } from '../lib/utils';
 import { getAllCards, getStats, formatTimeUntil } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
+import React from 'react';
 
 function Home() {
   const navigate = useNavigate();
@@ -26,33 +27,41 @@ function Home() {
     setCards(getAllCards());
   }, []);
 
-  const statusMap: Record<string, string> = {
-    'To Learn': 'to-learn',
-    Known: 'known',
-    Learned: 'learned',
+  const statusMap: Record<string, Card['status']> = {
+    New: 'new',
+    Learning: 'learning',
+    Review: 'review',
+    Relearning: 'relearning',
   };
 
   const statList = [
     {
-      label: 'To Learn',
-      value: stats.toLearn,
-      color: 'text-green-500',
-      icon: <FaBook size={24} color='#22c55e' />,
-      desc: 'Words you have yet to study.',
+      label: 'New',
+      value: stats.new,
+      color: 'text-blue-500',
+      icon: <FaBook size={24} color='#3b82f6' />,
+      sublabel: 'Not Studied',
     },
     {
-      label: 'Known',
-      value: stats.known,
-      color: 'text-blue-600',
-      icon: <FaCheckCircle size={24} color='#2563eb' />,
-      desc: 'Short-term memory.',
-    },
-    {
-      label: 'Learned',
-      value: stats.learned,
-      color: 'text-yellow-400',
+      label: 'Learning',
+      value: stats.learning,
+      color: 'text-yellow-500',
       icon: <FaLightbulb size={24} color='#eab308' />,
-      desc: 'Long-term memory.',
+      sublabel: 'Memorizing',
+    },
+    {
+      label: 'Review',
+      value: stats.review,
+      color: 'text-green-500',
+      icon: <FaCheckCircle size={24} color='#22c55e' />,
+      sublabel: 'Learned',
+    },
+    {
+      label: 'Relearning',
+      value: stats.relearning,
+      color: 'text-red-500',
+      icon: <FaRedo size={24} color='#ef4444' />,
+      sublabel: 'Forgotten',
     },
   ];
 
@@ -66,7 +75,12 @@ function Home() {
   };
 
   // Filter cards based on selected filters, then sort by status order and nextReview
-  const statusOrder = ['to-learn', 'known', 'learned'];
+  const statusOrder: Card['status'][] = [
+    'learning',
+    'relearning',
+    'new',
+    'review',
+  ];
   const filteredCards = (
     selectedFilters.length === 0
       ? cards
@@ -80,6 +94,38 @@ function Home() {
       return a.nextReview - b.nextReview;
     });
 
+  // Display label for card status
+  const getStatusLabel = (status: Card['status']) => {
+    switch (status) {
+      case 'new':
+        return 'New';
+      case 'learning':
+        return 'Learning';
+      case 'review':
+        return 'Review';
+      case 'relearning':
+        return 'Relearning';
+      default:
+        return status;
+    }
+  };
+
+  // Display color for card status
+  const getStatusColor = (status: Card['status']) => {
+    switch (status) {
+      case 'new':
+        return 'text-blue-500 bg-blue-50';
+      case 'learning':
+        return 'text-yellow-500 bg-yellow-50';
+      case 'review':
+        return 'text-green-500 bg-green-50';
+      case 'relearning':
+        return 'text-red-500 bg-red-50';
+      default:
+        return 'text-gray-500 bg-gray-50';
+    }
+  };
+
   return (
     <PageContainer title='🏠 Duocards'>
       <div className='flex flex-col gap-2 w-full mb-6'>
@@ -87,7 +133,7 @@ function Home() {
           className='w-full text-base py-3 rounded-xl'
           onClick={() => navigate('/review')}
         >
-          📖 Start Review
+          📖 Start Review ({stats.due} due)
         </Button>
         <Button
           variant='outline'
@@ -97,7 +143,7 @@ function Home() {
           📝 Add Card
         </Button>
       </div>
-      <div className='flex gap-2 justify-between'>
+      <div className='grid grid-cols-4 gap-2 w-full mb-4'>
         {statList.map((s) => {
           const status = statusMap[s.label];
           const isSelected = selectedFilters.includes(status);
@@ -107,31 +153,37 @@ function Home() {
               type='button'
               onClick={() => handleFilterClick(s.label)}
               className={
-                'flex-1 bg-white rounded-xl shadow p-3 flex flex-col items-center min-w-0 transition-all border-2 ' +
-                (isSelected ? 'border-blue-500' : 'border-transparent')
+                'flex flex-col items-center justify-center bg-white rounded-lg shadow p-1 transition-all border-2 min-w-0 w-full gap-1' +
+                (isSelected ? ' border-blue-500' : ' border-transparent')
               }
               style={{ outline: 'none' }}
             >
-              {s.icon}
-              <div className={`text-lg font-semibold ${s.color} my-1`}>
+              <div className='text-base font-semibold text-slate-900 leading-none'>
                 {s.value}
               </div>
-              <div className='text-sm text-slate-900 font-medium'>
+              <div className={`text-xs font-medium leading-none ${s.color}`}>
                 {s.label}
               </div>
-              <div className='text-xs text-slate-400 mt-0.5 text-center'>
-                {s.desc}
+              <div className='text-[10px] text-slate-400 leading-none'>
+                {s.sublabel}
               </div>
             </button>
           );
         })}
       </div>
 
+      {/* Total cards summary */}
+      <div className='text-center text-sm text-slate-500 mt-2'>
+        Total: {stats.total} cards
+      </div>
+
       {/* Card List */}
       <div className='mt-4'>
         {filteredCards.length === 0 ? (
           <div className='text-slate-400 text-sm text-center'>
-            No cards yet.
+            {selectedFilters.length > 0
+              ? 'No cards match the selected filters.'
+              : 'No cards yet.'}
           </div>
         ) : (
           <ul className='list-none p-0 m-0'>
@@ -155,18 +207,10 @@ function Home() {
                 <span
                   className={
                     `text-xs font-medium rounded-lg px-2 py-0.5 ml-2 ` +
-                    (card.status === 'to-learn'
-                      ? 'text-green-500 bg-green-50'
-                      : card.status === 'known'
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-yellow-500 bg-yellow-50')
+                    getStatusColor(card.status)
                   }
                 >
-                  {card.status === 'to-learn'
-                    ? 'To Learn'
-                    : card.status === 'known'
-                    ? 'Known'
-                    : 'Learned'}
+                  {getStatusLabel(card.status)}
                 </span>
               </li>
             ))}
