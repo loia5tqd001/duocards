@@ -112,7 +112,7 @@ export default function AddCard() {
               }`}
               autoFocus
             />
-            {/* {english && (
+            {english && (
               <Button
                 type='button'
                 variant='ghost'
@@ -129,7 +129,7 @@ export default function AddCard() {
               >
                 <FaTimes size={14} />
               </Button>
-            )} */}
+            )}
           </div>
           {info && (
             <div className='font-semibold text-lg mb-1 mt-1 flex items-center gap-2'>
@@ -160,7 +160,7 @@ export default function AddCard() {
                 vietnamese ? 'border-blue-500' : 'border-slate-200'
               }`}
             />
-            {/* {vietnamese && (
+            {vietnamese && (
               <Button
                 type='button'
                 variant='ghost'
@@ -173,7 +173,7 @@ export default function AddCard() {
               >
                 <FaTimes size={14} />
               </Button>
-            )} */}
+            )}
           </div>
           {/* Chips for Vietnamese translation suggestions */}
           {info &&
