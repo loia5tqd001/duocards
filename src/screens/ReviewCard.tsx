@@ -115,6 +115,8 @@ export default function ReviewCard() {
 
   // Track if we should auto play audio (only when a new card is shown, not when flipping)
   const [shouldAutoPlay, setShouldAutoPlay] = useState(true);
+  // Track if flip animation should be enabled
+  const [shouldAnimateFlip, setShouldAnimateFlip] = useState(false);
 
   // Keyboard navigation
   useEffect(() => {
@@ -162,10 +164,17 @@ export default function ReviewCard() {
     }
   }, [card, flipped, shouldAutoPlay]);
 
+  // Re-enable flip animation after card is reset to front
+  useEffect(() => {
+    if (!flipped) {
+      setShouldAnimateFlip(true);
+    }
+  }, [card, flipped]);
+
   const handleFlip = () => {
-    // If flipping back to front, do not auto play
     setFlipped((f) => !f);
     setShouldAutoPlay(false);
+    setShouldAnimateFlip(true); // Enable animation when user flips
   };
 
   const handleReview = (correct: boolean) => {
@@ -178,6 +187,7 @@ export default function ReviewCard() {
     setCurrentIdx(0);
     setFlipped(false);
     setShouldAutoPlay(true); // Next card should auto play
+    setShouldAnimateFlip(false); // Disable animation when moving to next card
   };
 
   if (!card) {
@@ -224,7 +234,9 @@ export default function ReviewCard() {
       {/* 3D Flip Card */}
       <div className='w-full flex items-center justify-center mb-8'>
         <div
-          className='w-full relative flex items-center justify-center transition-transform duration-400 max-w-full'
+          className={`w-full relative flex items-center justify-center max-w-full ${
+            shouldAnimateFlip ? 'transition-transform duration-400' : ''
+          }`}
           style={{
             transformStyle: 'preserve-3d',
             transform: flipped ? 'rotateY(180deg)' : 'none',
