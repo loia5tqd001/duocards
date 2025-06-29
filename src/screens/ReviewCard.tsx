@@ -497,14 +497,6 @@ export default function ReviewCard() {
         </Button>
       </div>
 
-      <div
-        className={`text-xs text-slate-300 text-center mb-2 ${
-          flipped ? '' : 'opacity-0'
-        }`}
-      >
-        Swipe left/right or use arrow keys
-      </div>
-
       {/* Status and info */}
       <div className='text-xs text-slate-400 text-center space-y-1'>
         {dueCards.length - 1} more cards due
