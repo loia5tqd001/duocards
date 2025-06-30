@@ -347,18 +347,26 @@ export default function AddOrEditCard() {
               </div>
             )}
         </div>
+        
+        {/* Padding to prevent content from being hidden behind sticky button */}
+        <div className='pb-24'>
+          {added && (
+            <div className='text-green-500 text-center font-medium'>
+              {editing ? 'Saved!' : 'Added!'}
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Sticky bottom button */}
+      <div className='fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 pb-safe'>
         <Button
-          className='w-full text-base py-3 rounded-xl mt-2'
+          className='w-full text-base py-3 rounded-xl'
           onClick={handleAddOrEdit}
           disabled={!english || !vietnamese || loading}
         >
           {loading ? 'Loading...' : editing ? 'Save Changes' : 'Add Card'}
         </Button>
-        {added && (
-          <div className='text-green-500 text-center font-medium'>
-            {editing ? 'Saved!' : 'Added!'}
-          </div>
-        )}
       </div>
     </PageContainer>
   );

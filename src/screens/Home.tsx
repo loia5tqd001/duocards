@@ -115,21 +115,6 @@ function Home() {
 
   return (
     <PageContainer title='🏠 Duocards'>
-      <div className='flex flex-col gap-2 w-full mb-6'>
-        <Button
-          className='w-full text-base py-3 rounded-xl'
-          onClick={() => navigate('/review')}
-        >
-          📖 Start Review ({stats.due} due)
-        </Button>
-        <Button
-          variant='outline'
-          className='w-full text-base py-3 rounded-xl'
-          onClick={() => navigate('/add')}
-        >
-          📝 Add Card
-        </Button>
-      </div>
       <div className='grid grid-cols-3 gap-3 w-full mb-4'>
         {statList.map((s) => {
           const status = statusMap[s.label];
@@ -157,7 +142,7 @@ function Home() {
       </div>
 
       {/* Card List */}
-      <div>
+      <div className='pb-32'>
         {filteredCards.length === 0 ? (
           <div className='text-slate-400 text-sm text-center'>
             {selectedFilters.length > 0
@@ -218,6 +203,23 @@ function Home() {
             ))}
           </ul>
         )}
+      </div>
+      
+      {/* Sticky bottom buttons */}
+      <div className='fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 pb-safe flex flex-col gap-2'>
+        <Button
+          className='w-full text-base py-3 rounded-xl'
+          onClick={() => navigate('/review')}
+        >
+          📖 Start Review ({stats.due} due)
+        </Button>
+        <Button
+          variant='outline'
+          className='w-full text-base py-3 rounded-xl'
+          onClick={() => navigate('/add')}
+        >
+          📝 Add Card
+        </Button>
       </div>
     </PageContainer>
   );
