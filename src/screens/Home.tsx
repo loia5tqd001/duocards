@@ -78,11 +78,17 @@ function Home() {
 
   // Filter cards based on selected filters, then sort by status order and nextReview
   const filteredCards = useMemo(() => {
+    const statusOrder: Card['status'][] = ['learning', 'new', 'learned'];
     return (
       selectedFilters.length === 0
         ? cards.slice()
         : cards.filter((card) => selectedFilters.includes(card.status))
-    ).sort((a, b) => a.nextReview - b.nextReview);
+    ).sort((a, b) => {
+      const statusDiff =
+        statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+      if (statusDiff !== 0) return statusDiff;
+      return a.nextReview - b.nextReview;
+    });
   }, [cards, selectedFilters]);
 
   // Display label for card status
