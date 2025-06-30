@@ -3,6 +3,8 @@ Home Screen:
 - [ ] Click to familiarity type to filter the list of cards
 - [x] Show how long until next review for each card in the Home screen list
 - [ ] Consider revamp the UI to be cleaner
+- [ ] Make buttons bigger and more visible/clickable
+- [ ] Display progress and learning activity
 
 Review Screen:
 
@@ -12,19 +14,28 @@ Review Screen:
   - [ ] Sounds like to reveal all
 - [x] Use keyboard to navigate (Arrow keys for correct/incorrect)
 - [x] Swipe gestures for card review (left = incorrect, right = correct)
+- [ ] Better drag left/right animation
 
 Add Card Screen:
 
 - [ ] Suggestions from dictionary (a list of chips)
 - [x] Add audio pronunciation button and speed toggle beside IPA phonetic in Add Card screen.
 - [x] AddCard: Use auto-growing textarea for example field (AutoGrowTextarea component, mobile-first, shadcn/ui)
+- [ ] Handle adding duplicate cards
+- [ ] Bigger button and more visible/clickable (make button sticky to the bottom of the screen)
+
+Settings Screen:
+
+- [ ] Export/import cards
+- [ ] Add folders/tags (categories)
 
 Common:
 
 - [x] Have correct, optimal Spaced Repetition algorithm (simplified 2-button system)
-
 - [x] Migrate all styling to Tailwind CSS (mobile-first, shadcn/ui consistent)
 - [ ] All new UI should use Tailwind utility classes and follow mobile-first design
+- [ ] Disable page level bouncing scroll
+- [ ] Improve content quality
 
 - Abstracted all FaVolumeUp usages to a new VolumeButton component for consistent audio play UI/UX. Supports 'significant' (blue) and 'default' (shadow/black) color modes.
 
