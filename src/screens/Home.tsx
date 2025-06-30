@@ -154,7 +154,7 @@ function Home() {
             📝 Add Card
           </Button>
         </div>
-        
+
         {filteredCards.length === 0 ? (
           <div className='text-slate-400 text-sm text-center'>
             {selectedFilters.length > 0
@@ -216,9 +216,9 @@ function Home() {
           </ul>
         )}
       </div>
-      
+
       {/* Sticky bottom button */}
-      <div className='fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 pb-safe'>
+      <div className='fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 sticky-bottom-bar'>
         <Button
           className='w-full text-base py-3 rounded-xl'
           onClick={() => navigate('/review')}

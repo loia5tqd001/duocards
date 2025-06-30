@@ -120,3 +120,18 @@
     background-color: #f8fafc;
   }
 }
+
+html, body {
+  height: 100%;
+  min-height: -webkit-fill-available;
+}
+
+.sticky-bottom-bar {
+  padding-bottom: 1rem;
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .sticky-bottom-bar {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+}
