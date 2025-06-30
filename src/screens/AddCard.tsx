@@ -11,7 +11,6 @@ import { FaTimes } from 'react-icons/fa';
 import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import VolumeButton from '@/components/ui/VolumeButton';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
 
 interface CambridgeInfo {
   word: string;
@@ -21,7 +20,6 @@ interface CambridgeInfo {
   vietnameseTranslations: string[];
 }
 
-const KEYBOARD_HEIGHT = 280;
 const DEBOUNCE_DELAY = 500;
 const SUCCESS_MESSAGE_DURATION = 1200;
 
@@ -41,62 +39,12 @@ export default function AddOrEditCard() {
   const [added, setAdded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [cardLoaded, setCardLoaded] = useState(false);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   // Refs
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const englishInputRef = useRef<HTMLInputElement>(null);
   const vietnameseInputRef = useRef<HTMLInputElement>(null);
   const exampleTextareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Enhanced keyboard detection with Visual Viewport API
-  const updateKeyboardOffset = useCallback(() => {
-    if (window.visualViewport) {
-      const keyboardHeight = Math.max(
-        0,
-        window.innerHeight - window.visualViewport.height
-      );
-      const isVisible = keyboardHeight > 50;
-      setKeyboardOffset(isVisible ? keyboardHeight : 0);
-      setIsKeyboardVisible(isVisible);
-    } else {
-      // Fallback for Safari - check if any input is focused
-      const activeElement = document.activeElement;
-      const isInputFocused =
-        activeElement &&
-        (activeElement === englishInputRef.current ||
-          activeElement === vietnameseInputRef.current ||
-          activeElement === exampleTextareaRef.current);
-      setKeyboardOffset(isInputFocused ? KEYBOARD_HEIGHT : 0);
-      setIsKeyboardVisible(isInputFocused ?? false);
-    }
-  }, []);
-
-  // Enhanced keyboard handlers with immediate state updates
-  const handleInputFocus = useCallback(() => {
-    // Immediately set keyboard as visible to prevent floating
-    setIsKeyboardVisible(true);
-    // Then update with real measurements
-    updateKeyboardOffset();
-  }, [updateKeyboardOffset]);
-
-  const handleInputBlur = useCallback(() => {
-    // Check if any other input is still focused
-    setTimeout(() => {
-      const activeElement = document.activeElement;
-      const isAnyInputFocused =
-        activeElement &&
-        (activeElement === englishInputRef.current ||
-          activeElement === vietnameseInputRef.current ||
-          activeElement === exampleTextareaRef.current);
-
-      if (!isAnyInputFocused) {
-        setIsKeyboardVisible(false);
-        setKeyboardOffset(0);
-      }
-    }, 0);
-  }, []);
 
   // Load card data for editing
   useEffect(() => {
@@ -112,60 +60,6 @@ export default function AddOrEditCard() {
     }
     setCardLoaded(true);
   }, [id]);
-
-  // Keyboard event listeners setup
-  useEffect(() => {
-    const inputs = [
-      englishInputRef.current,
-      vietnameseInputRef.current,
-      exampleTextareaRef.current,
-    ].filter(Boolean) as (HTMLInputElement | HTMLTextAreaElement)[];
-
-    // Real-time Visual Viewport listeners for smooth keyboard tracking
-    const handleViewportResize = () => {
-      updateKeyboardOffset();
-    };
-
-    const handleViewportScroll = () => {
-      updateKeyboardOffset();
-    };
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleViewportResize);
-      window.visualViewport.addEventListener('scroll', handleViewportScroll);
-    }
-
-    inputs.forEach((input) => {
-      input.addEventListener('focus', handleInputFocus);
-      input.addEventListener('blur', handleInputBlur);
-    });
-
-    return () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener(
-          'resize',
-          handleViewportResize
-        );
-        window.visualViewport.removeEventListener(
-          'scroll',
-          handleViewportScroll
-        );
-      }
-      inputs.forEach((input) => {
-        input.removeEventListener('focus', handleInputFocus);
-        input.removeEventListener('blur', handleInputBlur);
-      });
-    };
-  }, [handleInputFocus, handleInputBlur, updateKeyboardOffset]);
-
-  // Cleanup debounce timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
 
   // Clear form when English input is empty (only in add mode)
   const clearFormData = useCallback(() => {
@@ -532,24 +426,12 @@ export default function AddOrEditCard() {
         </div>
       </div>
 
-      {/* Smooth sticky bottom button */}
-      <motion.div
+      {/* Fixed bottom button (no longer sticky to keyboard) */}
+      <div
         className='fixed left-0 right-0 bg-white border-t border-slate-200 p-4 z-50'
-        initial={{ y: 0 }}
-        animate={{
-          y: isKeyboardVisible ? -keyboardOffset : 0,
-        }}
-        transition={{
-          type: 'spring',
-          stiffness: 300,
-          damping: 30,
-          mass: 0.8,
-        }}
         style={{
           bottom: 'env(safe-area-inset-bottom)',
-          paddingBottom: isKeyboardVisible
-            ? '1rem'
-            : 'max(1rem, env(safe-area-inset-bottom))',
+          paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
         }}
       >
         <Button
@@ -559,7 +441,7 @@ export default function AddOrEditCard() {
         >
           {loading ? 'Loading...' : editing ? 'Save Changes' : 'Add Card'}
         </Button>
-      </motion.div>
+      </div>
     </PageContainer>
   );
 }
