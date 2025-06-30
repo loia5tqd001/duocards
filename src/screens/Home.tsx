@@ -142,7 +142,19 @@ function Home() {
       </div>
 
       {/* Card List */}
-      <div className='pb-32'>
+      <div className='pb-20'>
+        <div className='flex items-center justify-between mb-4'>
+          <h2 className='text-lg font-semibold text-slate-800'>Cards</h2>
+          <Button
+            variant='outline'
+            size='sm'
+            className='text-sm py-2 px-3 rounded-lg'
+            onClick={() => navigate('/add')}
+          >
+            📝 Add Card
+          </Button>
+        </div>
+        
         {filteredCards.length === 0 ? (
           <div className='text-slate-400 text-sm text-center'>
             {selectedFilters.length > 0
@@ -205,20 +217,13 @@ function Home() {
         )}
       </div>
       
-      {/* Sticky bottom buttons */}
-      <div className='fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 pb-safe flex flex-col gap-2'>
+      {/* Sticky bottom button */}
+      <div className='fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 pb-safe'>
         <Button
           className='w-full text-base py-3 rounded-xl'
           onClick={() => navigate('/review')}
         >
           📖 Start Review ({stats.due} due)
-        </Button>
-        <Button
-          variant='outline'
-          className='w-full text-base py-3 rounded-xl'
-          onClick={() => navigate('/add')}
-        >
-          📝 Add Card
         </Button>
       </div>
     </PageContainer>
