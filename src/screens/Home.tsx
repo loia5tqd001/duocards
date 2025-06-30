@@ -150,7 +150,12 @@ function Home() {
       {/* Card List */}
       <div className='pb-20'>
         <div className='flex items-center justify-between mb-4'>
-          <h2 className='text-lg font-semibold text-slate-800'>Cards</h2>
+          <h2 className='text-lg font-semibold text-slate-800'>
+            {filteredCards.length}
+            {filteredCards.length === cards.length
+              ? ' Cards'
+              : ` of ${cards.length} Cards`}
+          </h2>
           <Button
             variant='outline'
             size='sm'
