@@ -229,13 +229,15 @@ function Home() {
       </div>
 
       {/* Sticky bottom button */}
-      <div className='fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 sticky-bottom-bar'>
-        <Button
-          className='w-full text-base py-3 rounded-xl'
-          onClick={() => navigate('/review')}
-        >
-          📖 Start Review ({stats.due} due)
-        </Button>
+      <div className='fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 sticky-bottom-bar'>
+        <div className='w-full max-w-sm mx-auto p-4'>
+          <Button
+            className='w-full text-base py-3 rounded-xl'
+            onClick={() => navigate('/review')}
+          >
+            📖 Start Review ({stats.due} due)
+          </Button>
+        </div>
       </div>
     </PageContainer>
   );

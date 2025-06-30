@@ -431,19 +431,21 @@ export default function AddOrEditCard() {
 
       {/* Fixed bottom button (no longer sticky to keyboard) */}
       <div
-        className='fixed left-0 right-0 bg-white border-t border-slate-200 p-4 z-50'
+        className='fixed left-0 right-0 bg-white border-t border-slate-200 z-50'
         style={{
           bottom: 'env(safe-area-inset-bottom)',
           paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
         }}
       >
-        <Button
-          className='w-full text-base py-3 rounded-xl'
-          onClick={handleAddOrEdit}
-          disabled={!english || !vietnamese || loading}
-        >
-          {loading ? 'Loading...' : editing ? 'Save Changes' : 'Add Card'}
-        </Button>
+        <div className='w-full max-w-sm mx-auto p-4'>
+          <Button
+            className='w-full text-base py-3 rounded-xl'
+            onClick={handleAddOrEdit}
+            disabled={!english || !vietnamese || loading}
+          >
+            {loading ? 'Loading...' : editing ? 'Save Changes' : 'Add Card'}
+          </Button>
+        </div>
       </div>
     </PageContainer>
   );
