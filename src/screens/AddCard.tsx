@@ -1,43 +1,104 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   addCard as addCardToStorage,
   updateCard,
   getAllCards,
+  speak,
 } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
 import { FaTimes } from 'react-icons/fa';
-import { speak } from '../lib/utils';
 import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import VolumeButton from '@/components/ui/VolumeButton';
 import { useNavigate, useParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
-// Info type for Cambridge info
-type Info = {
+interface CambridgeInfo {
   word: string;
   phonetic: string;
   audio: string;
   examples: string[];
   vietnameseTranslations: string[];
-};
+}
+
+const KEYBOARD_HEIGHT = 280;
+const DEBOUNCE_DELAY = 500;
+const SUCCESS_MESSAGE_DURATION = 1200;
 
 export default function AddOrEditCard() {
   const { id } = useParams<{ id?: string }>();
+  const navigate = useNavigate();
+
+  // Form state
   const [english, setEnglish] = useState('');
   const [vietnamese, setVietnamese] = useState('');
   const [example, setExample] = useState('');
-  const [info, setInfo] = useState<Info | null>(null);
+  const [phonetic, setPhonetic] = useState('');
+
+  // UI state
+  const [info, setInfo] = useState<CambridgeInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [cardLoaded, setCardLoaded] = useState(false);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  // Refs
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const navigate = useNavigate();
   const englishInputRef = useRef<HTMLInputElement>(null);
   const vietnameseInputRef = useRef<HTMLInputElement>(null);
   const exampleTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const [cardLoaded, setCardLoaded] = useState(false);
-  const [phonetic, setPhonetic] = useState('');
 
+  // Enhanced keyboard detection with Visual Viewport API
+  const updateKeyboardOffset = useCallback(() => {
+    if (window.visualViewport) {
+      const keyboardHeight = Math.max(
+        0,
+        window.innerHeight - window.visualViewport.height
+      );
+      const isVisible = keyboardHeight > 50;
+      setKeyboardOffset(isVisible ? keyboardHeight : 0);
+      setIsKeyboardVisible(isVisible);
+    } else {
+      // Fallback for Safari - check if any input is focused
+      const activeElement = document.activeElement;
+      const isInputFocused =
+        activeElement &&
+        (activeElement === englishInputRef.current ||
+          activeElement === vietnameseInputRef.current ||
+          activeElement === exampleTextareaRef.current);
+      setKeyboardOffset(isInputFocused ? KEYBOARD_HEIGHT : 0);
+      setIsKeyboardVisible(isInputFocused ?? false);
+    }
+  }, []);
+
+  // Enhanced keyboard handlers with immediate state updates
+  const handleInputFocus = useCallback(() => {
+    // Immediately set keyboard as visible to prevent floating
+    setIsKeyboardVisible(true);
+    // Then update with real measurements
+    updateKeyboardOffset();
+  }, [updateKeyboardOffset]);
+
+  const handleInputBlur = useCallback(() => {
+    // Check if any other input is still focused
+    setTimeout(() => {
+      const activeElement = document.activeElement;
+      const isAnyInputFocused =
+        activeElement &&
+        (activeElement === englishInputRef.current ||
+          activeElement === vietnameseInputRef.current ||
+          activeElement === exampleTextareaRef.current);
+
+      if (!isAnyInputFocused) {
+        setIsKeyboardVisible(false);
+        setKeyboardOffset(0);
+      }
+    }, 0);
+  }, []);
+
+  // Load card data for editing
   useEffect(() => {
     if (id) {
       const card = getAllCards().find((c) => c.id === id);
@@ -48,94 +109,207 @@ export default function AddOrEditCard() {
         setPhonetic(card.phonetic || '');
         setEditing(true);
       }
-      setCardLoaded(true);
-    } else {
-      setCardLoaded(true);
     }
+    setCardLoaded(true);
   }, [id]);
 
-  // Debounced fetch for Cambridge info and translation (only in add mode)
+  // Keyboard event listeners setup
+  useEffect(() => {
+    const inputs = [
+      englishInputRef.current,
+      vietnameseInputRef.current,
+      exampleTextareaRef.current,
+    ].filter(Boolean) as (HTMLInputElement | HTMLTextAreaElement)[];
+
+    // Real-time Visual Viewport listeners for smooth keyboard tracking
+    const handleViewportResize = () => {
+      updateKeyboardOffset();
+    };
+
+    const handleViewportScroll = () => {
+      updateKeyboardOffset();
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportResize);
+      window.visualViewport.addEventListener('scroll', handleViewportScroll);
+    }
+
+    inputs.forEach((input) => {
+      input.addEventListener('focus', handleInputFocus);
+      input.addEventListener('blur', handleInputBlur);
+    });
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener(
+          'resize',
+          handleViewportResize
+        );
+        window.visualViewport.removeEventListener(
+          'scroll',
+          handleViewportScroll
+        );
+      }
+      inputs.forEach((input) => {
+        input.removeEventListener('focus', handleInputFocus);
+        input.removeEventListener('blur', handleInputBlur);
+      });
+    };
+  }, [handleInputFocus, handleInputBlur, updateKeyboardOffset]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  // Clear form when English input is empty (only in add mode)
+  const clearFormData = useCallback(() => {
+    setInfo(null);
+    setVietnamese('');
+    setExample('');
+    setPhonetic('');
+    setLoading(false);
+  }, []);
+
+  // Fetch Cambridge info and auto-translate
+  const fetchInfo = useCallback(
+    async (word: string) => {
+      try {
+        const apiUrl =
+          import.meta.env.VITE_API_URL ||
+          `http://${window.location.hostname}:3001`;
+        const response = await fetch(
+          `${apiUrl}/api/cambridge/${encodeURIComponent(word)}`
+        );
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const newInfo: CambridgeInfo = {
+          word: data.word || word,
+          phonetic: data.phonetic || '',
+          audio: '',
+          examples: data.examples || [],
+          vietnameseTranslations: data.vietnameseTranslations || [],
+        };
+
+        setInfo(newInfo);
+        setPhonetic(newInfo.phonetic);
+        // Don't auto-fill Vietnamese and Example - let user choose from suggestions
+      } catch (error) {
+        console.error('Failed to fetch Cambridge info:', error);
+        clearFormData();
+      } finally {
+        setLoading(false);
+      }
+    },
+    [clearFormData]
+  );
+
+  // Fetch Cambridge info with debouncing
+  const debouncedFetchInfo = useCallback(
+    (word: string) => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      setLoading(true);
+      debounceRef.current = setTimeout(() => {
+        fetchInfo(word);
+      }, DEBOUNCE_DELAY);
+    },
+    [fetchInfo]
+  );
+
+  // Fetch Cambridge info effect
   useEffect(() => {
     if (!cardLoaded || editing) return;
-    if (!english.trim()) {
-      setInfo(null);
-      setVietnamese('');
-      setExample('');
-      setPhonetic('');
-      setLoading(false);
+
+    const trimmedEnglish = english.trim();
+    if (!trimmedEnglish) {
+      clearFormData();
       return;
     }
-    setLoading(true);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      fetchInfo(english.trim());
-    }, 500);
-  }, [english, editing, cardLoaded]);
 
-  // Placeholder: fetch Cambridge info and auto-translate
-  const fetchInfo = async (word: string) => {
-    setLoading(true);
+    debouncedFetchInfo(trimmedEnglish);
+  }, [english, editing, cardLoaded, clearFormData, debouncedFetchInfo]);
+
+  // Input change handlers
+  const handleEnglishChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setEnglish(e.target.value);
+      setAdded(false);
+    },
+    []
+  );
+
+  const handleVietnameseChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setVietnamese(e.target.value);
+    },
+    []
+  );
+
+  const handleExampleChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setExample(e.target.value);
+    },
+    []
+  );
+
+  // Form submission handler
+  const handleAddOrEdit = useCallback(() => {
+    const trimmedEnglish = english.trim();
+    const trimmedVietnamese = vietnamese.trim();
+
+    if (!trimmedEnglish || !trimmedVietnamese) return;
+
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const res = await fetch(
-        `${apiUrl}/api/cambridge/${encodeURIComponent(word)}`
-      );
-      if (!res.ok) throw new Error('Not found');
-      const data = await res.json();
-      setInfo({
-        word: data.word || word,
-        phonetic: data.phonetic,
-        audio: '',
-        examples: data.examples,
-        vietnameseTranslations: data.vietnameseTranslations,
-      });
-      setPhonetic(data.phonetic || '');
-      setVietnamese(data.mainVietnamese || '');
-      setExample(data.examples?.[0] || '');
-    } catch (e) {
-      console.error(e);
-      setInfo(null);
-      setVietnamese('');
-      setPhonetic('');
-    }
-    setLoading(false);
-  };
+      if (editing && id) {
+        // Update existing card
+        const cards = getAllCards();
+        const existingCard = cards.find((card) => card.id === id);
+        if (existingCard) {
+          updateCard({
+            ...existingCard,
+            english: trimmedEnglish,
+            vietnamese: trimmedVietnamese,
+            example: example.trim(),
+          });
+          setAdded(true);
+          setTimeout(() => setAdded(false), SUCCESS_MESSAGE_DURATION);
+          window.dispatchEvent(new Event('storage'));
+          navigate('/');
+        }
+      } else {
+        // Add new card
+        addCardToStorage({
+          english: trimmedEnglish,
+          vietnamese: trimmedVietnamese,
+          example: example.trim(),
+          phonetic: info?.phonetic || '',
+        });
 
-  const handleEnglishChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEnglish(e.target.value);
-    setAdded(false);
-  };
-
-  const handleAddOrEdit = () => {
-    if (!english || !vietnamese) return;
-    if (editing && id) {
-      // Update existing card
-      const cards = getAllCards();
-      const card = cards.find((c) => c.id === id);
-      if (card) {
-        updateCard({ ...card, english, vietnamese, example });
+        // Reset form
+        setEnglish('');
+        setVietnamese('');
+        setExample('');
+        setInfo(null);
         setAdded(true);
-        setTimeout(() => setAdded(false), 1200);
+        setTimeout(() => setAdded(false), SUCCESS_MESSAGE_DURATION);
         window.dispatchEvent(new Event('storage'));
-        navigate('/');
       }
-    } else {
-      // Add new card
-      addCardToStorage({
-        english,
-        vietnamese,
-        example,
-        phonetic: info?.phonetic || '',
-      });
-      setAdded(true);
-      setEnglish('');
-      setVietnamese('');
-      setExample('');
-      setInfo(null);
-      setTimeout(() => setAdded(false), 1200);
-      window.dispatchEvent(new Event('storage'));
+    } catch (error) {
+      alert('error: ' + error);
+      console.error('Failed to save card:', error);
     }
-  };
+  }, [english, vietnamese, example, editing, id, info?.phonetic, navigate]);
 
   return (
     <PageContainer
@@ -178,9 +352,9 @@ export default function AddOrEditCard() {
               className={`w-full p-3 rounded-lg border text-base focus:outline-none pr-10 ${
                 english ? 'border-blue-500' : 'border-slate-200'
               }`}
-              autoFocus
               ref={englishInputRef}
               readOnly={editing}
+              autoFocus={!editing}
             />
             {!editing && english && (
               <Button
@@ -192,7 +366,7 @@ export default function AddOrEditCard() {
                   setEnglish('');
                   setInfo(null);
                   setAdded(false);
-                  setTimeout(() => englishInputRef.current?.focus(), 0);
+                  englishInputRef.current?.focus();
                 }}
                 aria-label='Clear English input'
                 title='Clear English input'
@@ -237,7 +411,7 @@ export default function AddOrEditCard() {
               id='vietnamese'
               type='text'
               value={vietnamese}
-              onChange={(e) => setVietnamese(e.target.value)}
+              onChange={handleVietnameseChange}
               placeholder='Vietnamese translation'
               className={`w-full p-3 rounded-lg border text-base focus:outline-none pr-10 ${
                 vietnamese ? 'border-blue-500' : 'border-slate-200'
@@ -252,7 +426,7 @@ export default function AddOrEditCard() {
                 className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
                 onClick={() => {
                   setVietnamese('');
-                  setTimeout(() => vietnameseInputRef.current?.focus(), 0);
+                  vietnameseInputRef.current?.focus();
                 }}
                 aria-label='Clear Vietnamese input'
                 title='Clear Vietnamese input'
@@ -295,7 +469,7 @@ export default function AddOrEditCard() {
             <AutoGrowTextarea
               id='example'
               value={example}
-              onChange={(e) => setExample(e.target.value)}
+              onChange={handleExampleChange}
               placeholder='Example sentence (English)'
               minRows={1}
               maxRows={3}
@@ -312,7 +486,7 @@ export default function AddOrEditCard() {
                 className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
                 onClick={() => {
                   setExample('');
-                  setTimeout(() => exampleTextareaRef.current?.focus(), 0);
+                  exampleTextareaRef.current?.focus();
                 }}
                 aria-label='Clear Example input'
                 title='Clear Example input'
@@ -347,7 +521,7 @@ export default function AddOrEditCard() {
               </div>
             )}
         </div>
-        
+
         {/* Padding to prevent content from being hidden behind sticky button */}
         <div className='pb-24'>
           {added && (
@@ -357,9 +531,27 @@ export default function AddOrEditCard() {
           )}
         </div>
       </div>
-      
-      {/* Sticky bottom button */}
-      <div className='fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 pb-safe'>
+
+      {/* Smooth sticky bottom button */}
+      <motion.div
+        className='fixed left-0 right-0 bg-white border-t border-slate-200 p-4 z-50'
+        initial={{ y: 0 }}
+        animate={{
+          y: isKeyboardVisible ? -keyboardOffset : 0,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 300,
+          damping: 30,
+          mass: 0.8,
+        }}
+        style={{
+          bottom: 'env(safe-area-inset-bottom)',
+          paddingBottom: isKeyboardVisible
+            ? '1rem'
+            : 'max(1rem, env(safe-area-inset-bottom))',
+        }}
+      >
         <Button
           className='w-full text-base py-3 rounded-xl'
           onClick={handleAddOrEdit}
@@ -367,7 +559,7 @@ export default function AddOrEditCard() {
         >
           {loading ? 'Loading...' : editing ? 'Save Changes' : 'Add Card'}
         </Button>
-      </div>
+      </motion.div>
     </PageContainer>
   );
 }

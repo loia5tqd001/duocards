@@ -72,7 +72,7 @@ export function addCard(
 ): Card {
   const newCard: Card = {
     ...card,
-    id: crypto.randomUUID(),
+    id: uuidv4(),
     createdAt: Date.now(),
     status: 'new',
     interval: 0,
@@ -85,6 +85,41 @@ export function addCard(
   cards.push(newCard);
   saveAllCards(cards);
   return newCard;
+}
+
+// Cross-browser UUID v4 generator
+export function uuidv4(): string {
+  // Use crypto.getRandomValues if available
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    // Set version and variant bits
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    return [...bytes]
+      .map((b, i) =>
+        [4, 6, 8, 10].includes(i)
+          ? '-' + b.toString(16).padStart(2, '0')
+          : b.toString(16).padStart(2, '0')
+      )
+      .join('')
+      .replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5');
+  }
+  // Fallback: Math.random (not cryptographically secure)
+  let uuid = '',
+    i = 0;
+  for (i = 0; i < 36; i++) {
+    if (i === 8 || i === 13 || i === 18 || i === 23) {
+      uuid += '-';
+    } else if (i === 14) {
+      uuid += '4';
+    } else if (i === 19) {
+      uuid += ((Math.random() * 4) | 8).toString(16);
+    } else {
+      uuid += ((Math.random() * 16) | 0).toString(16);
+    }
+  }
+  return uuid;
 }
 
 export function updateCard(updated: Card) {
