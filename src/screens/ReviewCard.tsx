@@ -20,6 +20,34 @@ import {
 
 const HINT_APPEAR_THRESHOLD = 50;
 
+function CardFrontContent({
+  card,
+  speak,
+}: {
+  card: Card;
+  speak: (text: string) => void;
+}) {
+  return (
+    <div className='review-card w-full'>
+      <div className='text-2xl font-bold mb-2 text-center tracking-tight'>
+        {card.english}
+      </div>
+      <div className='text-slate-400 text-md mb-2 font-medium flex items-center justify-center'>
+        {card.phonetic}
+        <VolumeButton
+          onClick={(e) => {
+            e.stopPropagation();
+            speak(card.english || '');
+          }}
+          ariaLabel='Play word audio'
+          size={18}
+          significant={true}
+        />
+      </div>
+    </div>
+  );
+}
+
 function ReviewCardFront({
   card,
   onFlip,
@@ -38,22 +66,7 @@ function ReviewCardFront({
       onClick={onFlip}
     >
       <style>{`.review-card::-webkit-scrollbar { display: none; }`}</style>
-      <div className='review-card w-full'>
-        <div className='text-2xl font-bold mb-2 text-center tracking-tight'>
-          {card.english}
-        </div>
-        <div className='text-slate-400 text-md mb-2 font-medium flex items-center justify-center'>
-          {card.phonetic}
-          <VolumeButton
-            onClick={() => {
-              speak(card.english || '');
-            }}
-            ariaLabel='Play word audio'
-            size={18}
-            significant={true}
-          />
-        </div>
-      </div>
+      <CardFrontContent card={card} speak={speak} />
       {/* Tap to reveal hint */}
       {showHint && (
         <div className='absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none select-none'>
@@ -97,12 +110,13 @@ function ReviewCardBack({
         <div className='text-slate-400 text-md mb-2 font-medium flex items-center justify-center'>
           {card.phonetic}
           <VolumeButton
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               speak(card.english || '');
             }}
             ariaLabel='Play word audio'
             size={18}
-            significant={false}
+            significant={true}
           />
         </div>
         {/* Vietnamese translation (biggest text) */}
@@ -290,11 +304,6 @@ export default function ReviewCard() {
 
     currentX.current = clientX - startX.current;
     setDragX(currentX.current);
-
-    // Calculate opacity based on drag distance
-    const screenWidth = window.innerWidth;
-    const dragPercent = Math.abs(currentX.current) / (screenWidth * 0.4);
-    setOpacity(Math.max(0.2, 1 - dragPercent));
   };
 
   const handleEnd = () => {
@@ -505,19 +514,6 @@ export default function ReviewCard() {
             0 10px 15px -5px rgb(0 0 0 / 0.05),
             0 5px 5px -5px rgb(0 0 0 / 0.03);
         }
-        .card-bottom-shadow {
-          position: absolute;
-          left: 50%;
-          bottom: 18px;
-          transform: translateX(-50%);
-          width: 70%;
-          max-width: 220px;
-          height: 28px;
-          background: radial-gradient(ellipse at center, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.10) 60%, rgba(0,0,0,0.0) 100%);
-          filter: blur(2px);
-          z-index: 0;
-          pointer-events: none;
-        }
       `}</style>
       {/* Swipe hints */}
       <div className='relative w-full flex items-center justify-center mb-4'>
@@ -554,10 +550,10 @@ export default function ReviewCard() {
           }}
         >
           {/* Deck effect - background cards */}
-          {dueCards.length > 1 && (
+          {dueCards.length > 1 && !(shouldAnimateFlip && !isDragging) && (
             <>
               {/* Third card (deepest) */}
-              <div 
+              <div
                 className='absolute w-full bg-white rounded-xl deck-card-2'
                 style={{
                   minHeight: '70dvh',
@@ -567,19 +563,19 @@ export default function ReviewCard() {
                 }}
               />
               {/* Second card (middle) */}
-              <div 
-                className='absolute w-full bg-white rounded-xl deck-card-1'
+              <div
+                className='absolute w-full bg-white rounded-xl deck-card-1 flex flex-col items-center justify-center p-6'
                 style={{
                   minHeight: '70dvh',
                   maxHeight: '80dvh',
                   transform: 'translateY(4px) scale(0.98)',
                   zIndex: -1,
                 }}
-              />
+              >
+                <CardFrontContent card={nextCard} speak={speak} />
+              </div>
             </>
           )}
-          {/* Card bottom shadow */}
-          <div className='card-bottom-shadow' />
           {/* Next card (shown during dismissal) */}
           {showNextCard && nextCard && dueCards.length > 1 && (
             <div
@@ -612,12 +608,11 @@ export default function ReviewCard() {
               transform: isDismissing
                 ? undefined
                 : `translateX(${dragX}px) rotateZ(${rotation}deg)`,
-              opacity: isDismissing ? undefined : opacity,
               transition:
                 isDragging || isDismissing
                   ? 'none'
                   : shouldAnimateFlip
-                  ? 'transform 0.3s ease-out, opacity 0.3s ease-out'
+                  ? 'transform 0.3s ease-out' // Removed opacity from transition
                   : 'none',
               minHeight: '70dvh',
               maxHeight: '80dvh',
