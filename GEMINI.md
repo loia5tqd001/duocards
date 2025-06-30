@@ -1,0 +1,4 @@
+- Use pnpm as package manager.
+- Update README.md and TODO.md as features are added/changed.
+- All UI/UX must be designed mobile-first, then enhanced for desktop.
+- Use shadcn/ui for components and please follow its design system.
