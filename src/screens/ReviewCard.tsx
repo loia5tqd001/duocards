@@ -24,14 +24,16 @@ function ReviewCardFront({
   card,
   onFlip,
   speak,
+  showHint = true,
 }: {
   card: Card;
   onFlip: (e: React.MouseEvent) => void;
   speak: (text: string) => void;
+  showHint?: boolean;
 }) {
   return (
     <div
-      className='absolute w-full h-full top-0 left-0 bg-white rounded-xl shadow flex flex-col items-center justify-center p-6 backface-hidden overflow-y-auto max-h-full'
+      className='absolute w-full h-full top-0 left-0 bg-white rounded-xl flex flex-col items-center justify-center p-6 backface-hidden overflow-y-auto max-h-full shadow-lg'
       style={{ backfaceVisibility: 'hidden' }}
       onClick={onFlip}
     >
@@ -53,15 +55,17 @@ function ReviewCardFront({
         </div>
       </div>
       {/* Tap to reveal hint */}
-      <div className='absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none select-none'>
-        <FaRegHandPointer
-          className='text-slate-300 mb-1 animate-bounce'
-          size={20}
-        />
-        <span className='text-xs text-slate-400 font-medium'>
-          Tap to reveal
-        </span>
-      </div>
+      {showHint && (
+        <div className='absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none select-none'>
+          <FaRegHandPointer
+            className='text-slate-300 mb-1 animate-bounce'
+            size={20}
+          />
+          <span className='text-xs text-slate-400 font-medium'>
+            Tap to reveal
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -77,7 +81,7 @@ function ReviewCardBack({
 }) {
   return (
     <div
-      className='absolute w-full h-full top-0 left-0 bg-white rounded-xl shadow flex flex-col items-center justify-center p-6 backface-hidden overflow-y-auto max-h-full'
+      className='absolute w-full h-full top-0 left-0 bg-white rounded-xl flex flex-col items-center justify-center p-6 backface-hidden overflow-y-auto max-h-full shadow-lg'
       style={{
         backfaceVisibility: 'hidden',
         transform: 'rotateY(180deg)',
@@ -160,6 +164,17 @@ export default function ReviewCard() {
   const startX = useRef(0);
   const currentX = useRef(0);
 
+  // Store the next card to show during animation, so it doesn't shift to the next-next card
+  const [pendingNextCard, setPendingNextCard] = useState<Card | null>(null);
+  const nextCard = pendingNextCard || dueCards[currentIdx + 1] || dueCards[0];
+
+  // Animation states
+  const [isDismissing, setIsDismissing] = useState(false);
+  const [dismissDirection, setDismissDirection] = useState<
+    'left' | 'right' | null
+  >(null);
+  const [showNextCard, setShowNextCard] = useState(false);
+
   // Clear session queue when component mounts (new review session)
   useEffect(() => {
     clearSessionQueue();
@@ -171,7 +186,8 @@ export default function ReviewCard() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       // Ignore if any modifier key is held
-      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || isDismissing)
+        return;
       if (!card) return;
       if (!flipped) {
         // On front: any key flips
@@ -189,7 +205,7 @@ export default function ReviewCard() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flipped, card]);
+  }, [flipped, card, isDismissing]);
 
   // Auto play audio when a new card is shown (not when flipping)
   useEffect(() => {
@@ -207,7 +223,7 @@ export default function ReviewCard() {
   }, [card, flipped]);
 
   const handleFlip = () => {
-    if (isDragging) return; // Don't flip while dragging
+    if (isDragging || isDismissing) return; // Don't flip while dragging or during dismissal
     if (!flipped) {
       setFlipped(true);
       setShouldAutoPlay(false);
@@ -216,36 +232,61 @@ export default function ReviewCard() {
   };
 
   const handleReview = (grade: CardGrade) => {
-    if (!card) return;
+    if (!card || isDismissing) return;
+    // Start dismissal animation
+    setIsDismissing(true);
+    setDismissDirection(grade === 'correct' ? 'right' : 'left');
+    // Store the next card before updating dueCards
+    const newDueCardsPreview = getDueCards();
+    const nextCardToShow =
+      newDueCardsPreview[1] || newDueCardsPreview[0] || null;
+    setPendingNextCard(nextCardToShow);
+    setShowNextCard(true);
+
+    // Update the card in storage
     const updated = scheduleNext(card, grade);
     updateCard(updated);
-    // Move to next card
+
+    // Update due cards and UI immediately for buttons/count
     const newDueCards = getDueCards();
     if (newDueCards.length === 0) {
-      // No more cards due
-      navigate('/');
+      // No more cards due, but delay navigation for animation
+      setDueCards([]);
+      setCurrentIdx(0);
+      setTimeout(() => {
+        setIsDismissing(false);
+        setDismissDirection(null);
+        setShowNextCard(false);
+        setPendingNextCard(null);
+      }, 600);
     } else {
       setDueCards(newDueCards);
       setCurrentIdx(0);
       setFlipped(false);
-      setShouldAutoPlay(true); // Next card should auto play
-      setShouldAnimateFlip(false); // Disable animation when moving to next card
-      // Reset swipe state immediately
+      setShouldAutoPlay(true);
+      setShouldAnimateFlip(false);
       setDragX(0);
       setOpacity(1);
       setIsDragging(false);
+      // Only delay the animation reset
+      setTimeout(() => {
+        setIsDismissing(false);
+        setDismissDirection(null);
+        setShowNextCard(false);
+        setPendingNextCard(null);
+      }, 600);
     }
   };
 
   // Touch handlers for swipe gestures
   const handleStart = (clientX: number) => {
-    if (!flipped) return; // Only allow swipes when card is flipped
+    if (!flipped || isDismissing) return; // Only allow swipes when card is flipped and not dismissing
     setIsDragging(true);
     startX.current = clientX - dragX;
   };
 
   const handleMove = (clientX: number) => {
-    if (!isDragging || !flipped) return;
+    if (!isDragging || !flipped || isDismissing) return;
 
     currentX.current = clientX - startX.current;
     setDragX(currentX.current);
@@ -366,8 +407,10 @@ export default function ReviewCard() {
 
   // Calculate rotation based on drag
   const rotation = dragX / 10; // Subtle rotation effect
-  const showIncorrectHint = dragX < -HINT_APPEAR_THRESHOLD && flipped;
-  const showCorrectHint = dragX > HINT_APPEAR_THRESHOLD && flipped;
+  const showIncorrectHint =
+    dragX < -HINT_APPEAR_THRESHOLD && flipped && !isDismissing;
+  const showCorrectHint =
+    dragX > HINT_APPEAR_THRESHOLD && flipped && !isDismissing;
 
   return (
     <PageContainer
@@ -396,6 +439,86 @@ export default function ReviewCard() {
       }
       className={'overflow-hidden'}
     >
+      <style>{`
+        @keyframes throwLeft {
+          0% {
+            transform: translateX(0) translateY(0) rotate(0deg) scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: translateX(-150%) translateY(-30%) rotate(-25deg) scale(0.9);
+            opacity: 0.8;
+          }
+          100% {
+            transform: translateX(-200%) translateY(100%) rotate(-30deg) scale(0.7);
+            opacity: 0;
+          }
+        }
+        @keyframes throwRight {
+          0% {
+            transform: translateX(0) translateY(0) rotate(0deg) scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: translateX(150%) translateY(-30%) rotate(25deg) scale(0.9);
+            opacity: 0.8;
+          }
+          100% {
+            transform: translateX(200%) translateY(100%) rotate(30deg) scale(0.7);
+            opacity: 0;
+          }
+        }
+        @keyframes slideUp {
+          0% {
+            transform: translateY(0) scale(0.95);
+            opacity: 0.5;
+            z-index: 0;
+          }
+          100% {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            z-index: 1;
+          }
+        }
+        .throw-left {
+          animation: throwLeft 0.6s ease-out forwards;
+        }
+        .throw-right {
+          animation: throwRight 0.6s ease-out forwards;
+        }
+        .slide-up {
+          animation: slideUp 0.6s ease-out forwards;
+        }
+        .card-shadow {
+          box-shadow: 
+            0 20px 25px -5px rgb(0 0 0 / 0.15),
+            0 10px 10px -5px rgb(0 0 0 / 0.1),
+            0 0 0 1px rgb(0 0 0 / 0.05);
+        }
+        .deck-card-1 {
+          box-shadow: 
+            0 15px 20px -5px rgb(0 0 0 / 0.08),
+            0 8px 8px -5px rgb(0 0 0 / 0.06);
+        }
+        .deck-card-2 {
+          box-shadow: 
+            0 10px 15px -5px rgb(0 0 0 / 0.05),
+            0 5px 5px -5px rgb(0 0 0 / 0.03);
+        }
+        .card-bottom-shadow {
+          position: absolute;
+          left: 50%;
+          bottom: 18px;
+          transform: translateX(-50%);
+          width: 70%;
+          max-width: 220px;
+          height: 28px;
+          background: radial-gradient(ellipse at center, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.10) 60%, rgba(0,0,0,0.0) 100%);
+          filter: blur(2px);
+          z-index: 0;
+          pointer-events: none;
+        }
+      `}</style>
       {/* Swipe hints */}
       <div className='relative w-full flex items-center justify-center mb-4'>
         {/* Incorrect hint (left) */}
@@ -420,51 +543,125 @@ export default function ReviewCard() {
           </div>
         </div>
 
-        {/* 3D Flip Card with swipe */}
+        {/* Card Container */}
         <div
-          className='w-full relative flex items-center justify-center'
+          className='relative'
           style={{
-            transform: `translateX(${dragX}px) rotateZ(${rotation}deg)`,
-            opacity: opacity,
-            transition: isDragging
-              ? 'none'
-              : shouldAnimateFlip
-              ? 'transform 0.3s ease-out, opacity 0.3s ease-out'
-              : 'none',
             maxWidth: 360,
+            width: '100%',
             minHeight: '70dvh',
             maxHeight: '80dvh',
           }}
         >
+          {/* Deck effect - background cards */}
+          {dueCards.length > 1 && (
+            <>
+              {/* Third card (deepest) */}
+              <div 
+                className='absolute w-full bg-white rounded-xl deck-card-2'
+                style={{
+                  minHeight: '70dvh',
+                  maxHeight: '80dvh',
+                  transform: 'translateY(8px) scale(0.96)',
+                  zIndex: -2,
+                }}
+              />
+              {/* Second card (middle) */}
+              <div 
+                className='absolute w-full bg-white rounded-xl deck-card-1'
+                style={{
+                  minHeight: '70dvh',
+                  maxHeight: '80dvh',
+                  transform: 'translateY(4px) scale(0.98)',
+                  zIndex: -1,
+                }}
+              />
+            </>
+          )}
+          {/* Card bottom shadow */}
+          <div className='card-bottom-shadow' />
+          {/* Next card (shown during dismissal) */}
+          {showNextCard && nextCard && dueCards.length > 1 && (
+            <div
+              className='absolute w-full slide-up'
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: `rotateY(0deg)`,
+                minHeight: '70dvh',
+                maxHeight: '80dvh',
+              }}
+            >
+              <ReviewCardFront
+                card={nextCard}
+                onFlip={() => {}}
+                speak={speak}
+                showHint={true}
+              />
+            </div>
+          )}
+          {/* Current card with animations */}
           <div
-            ref={cardRef}
-            className={`w-full relative flex items-center justify-center max-w-full select-none ${
-              shouldAnimateFlip ? 'transition-transform duration-400' : ''
+            className={`w-full relative flex items-center justify-center ${
+              isDismissing
+                ? dismissDirection === 'right'
+                  ? 'throw-right'
+                  : 'throw-left'
+                : ''
             }`}
             style={{
-              transformStyle: 'preserve-3d',
-              transform: `rotateY(${flipped ? 180 : 0}deg)`,
-              maxWidth: 360,
+              transform: isDismissing
+                ? undefined
+                : `translateX(${dragX}px) rotateZ(${rotation}deg)`,
+              opacity: isDismissing ? undefined : opacity,
+              transition:
+                isDragging || isDismissing
+                  ? 'none'
+                  : shouldAnimateFlip
+                  ? 'transform 0.3s ease-out, opacity 0.3s ease-out'
+                  : 'none',
               minHeight: '70dvh',
               maxHeight: '80dvh',
-              cursor: flipped && !isDragging ? 'grab' : 'pointer',
+              position: isDismissing ? 'absolute' : 'relative',
+              zIndex: isDismissing ? 10 : 1,
             }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseLeave}
           >
-            {/* Front Side */}
-            <ReviewCardFront card={card} onFlip={handleFlip} speak={speak} />
-            {/* Back Side */}
-            <ReviewCardBack
-              card={card}
-              speak={speak}
-              onEdit={() => navigate(`/edit/${card.id}`)}
-            />
+            <div
+              ref={cardRef}
+              className={`w-full relative flex items-center justify-center max-w-full select-none${
+                shouldAnimateFlip && !isDismissing
+                  ? ' transition-transform duration-400'
+                  : ''
+              }`}
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: `rotateY(${flipped ? 180 : 0}deg)`,
+                minHeight: '70dvh',
+                maxHeight: '80dvh',
+                cursor:
+                  flipped && !isDragging && !isDismissing ? 'grab' : 'pointer',
+              }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+            >
+              {/* Front Side */}
+              <ReviewCardFront
+                card={card}
+                onFlip={handleFlip}
+                speak={speak}
+                showHint={!(flipped || isDismissing)}
+              />
+              {/* Back Side */}
+              <ReviewCardBack
+                card={card}
+                speak={speak}
+                onEdit={() => navigate(`/edit/${card.id}`)}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -473,10 +670,10 @@ export default function ReviewCard() {
       <div className={`w-full flex gap-4 mb-2 ${!flipped ? 'opacity-0' : ''}`}>
         <Button
           className={`flex-1 text-base py-4 rounded-xl bg-red-500 hover:bg-red-600 focus:bg-red-600 focus-visible:bg-red-600 text-white border-none flex items-center justify-center gap-2 ${
-            flipped ? '' : 'opacity-50 pointer-events-none'
+            flipped && !isDismissing ? '' : 'opacity-50 pointer-events-none'
           }`}
           onClick={() => handleReview('incorrect')}
-          disabled={!flipped}
+          disabled={!flipped || isDismissing}
         >
           <FaArrowLeft size={20} />
           <div className='flex flex-col items-center'>
@@ -485,10 +682,10 @@ export default function ReviewCard() {
         </Button>
         <Button
           className={`flex-1 text-base py-4 rounded-xl bg-green-500 hover:bg-green-600 focus:bg-green-600 focus-visible:bg-green-600 text-white border-none flex items-center justify-center gap-2 ${
-            flipped ? '' : 'opacity-50 pointer-events-none'
+            flipped && !isDismissing ? '' : 'opacity-50 pointer-events-none'
           }`}
           onClick={() => handleReview('correct')}
-          disabled={!flipped}
+          disabled={!flipped || isDismissing}
         >
           <div className='flex flex-col items-center'>
             <span>Correct</span>
