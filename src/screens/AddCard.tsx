@@ -78,7 +78,10 @@ export default function AddOrEditCard() {
           import.meta.env.VITE_API_URL ||
           `http://${window.location.hostname}:3001`;
         const response = await fetch(
-          `${apiUrl}/api/cambridge/${encodeURIComponent(word)}`
+          `${apiUrl}/api/cambridge/${encodeURIComponent(word)}`,
+          {
+            signal: AbortSignal.timeout(7000), // 7 second timeout
+          }
         );
 
         if (!response.ok) {
