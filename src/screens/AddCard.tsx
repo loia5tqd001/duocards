@@ -1,44 +1,40 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  addCard as addCardToStorage,
-  updateCard,
-  getAllCards,
-  speak,
-} from '../lib/utils';
+import { speak } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
 import { FaTimes } from 'react-icons/fa';
 import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import VolumeButton from '@/components/ui/VolumeButton';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useCards, useCardsActions } from '../store/cardsStore';
+import { useFormFields, useFormState, useCambridgeState, useFormActions, type CambridgeInfo } from '../store/formStore';
+import { useUIActions } from '../store/uiStore';
 
-interface CambridgeInfo {
-  word: string;
-  phonetic: string;
-  audio: string;
-  examples: string[];
-  vietnameseTranslations: string[];
-}
+// CambridgeInfo interface is now imported from formStore
 
 const DEBOUNCE_DELAY = 500;
-const SUCCESS_MESSAGE_DURATION = 1200;
 
 export default function AddOrEditCard() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
 
-  // Form state
-  const [english, setEnglish] = useState('');
-  const [vietnamese, setVietnamese] = useState('');
-  const [example, setExample] = useState('');
-  const [phonetic, setPhonetic] = useState('');
-
-  // UI state
-  const [info, setInfo] = useState<CambridgeInfo | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [added, setAdded] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [cardLoaded, setCardLoaded] = useState(false);
+  // Use stores
+  const cards = useCards();
+  const { addCard, updateCard } = useCardsActions();
+  const { english, vietnamese, example, phonetic } = useFormFields();
+  const { isEditing, editingCardId, cardLoaded, isSubmitting } = useFormState();
+  const { info, isFetching } = useCambridgeState();
+  const {
+    setField,
+    setCambridgeInfo,
+    setFetchingCambridge,
+    setEditing,
+    setCardLoaded,
+    setSubmitting,
+    resetForm,
+    populateFromCard,
+  } = useFormActions();
+  const { showNotification } = useUIActions();
 
   // Refs
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -49,26 +45,28 @@ export default function AddOrEditCard() {
   // Load card data for editing
   useEffect(() => {
     if (id) {
-      const card = getAllCards().find((c) => c.id === id);
+      const card = cards.find((c) => c.id === id);
       if (card) {
-        setEnglish(card.english);
-        setVietnamese(card.vietnamese);
-        setExample(card.example || '');
-        setPhonetic(card.phonetic || '');
-        setEditing(true);
+        populateFromCard(card);
+        setEditing(true, id);
+      }
+    } else {
+      // If no ID, we're in add mode - only reset if we were previously editing
+      if (isEditing) {
+        resetForm();
       }
     }
     setCardLoaded(true);
-  }, [id]);
+  }, [id, cards, populateFromCard, setEditing, setCardLoaded, isEditing, resetForm]);
 
   // Clear form when English input is empty (only in add mode)
   const clearFormData = useCallback(() => {
-    setInfo(null);
-    setVietnamese('');
-    setExample('');
-    setPhonetic('');
-    setLoading(false);
-  }, []);
+    setCambridgeInfo(undefined);
+    setField('vietnamese', '');
+    setField('example', '');
+    setField('phonetic', '');
+    setFetchingCambridge(false);
+  }, [setCambridgeInfo, setField, setFetchingCambridge]);
 
   // Fetch Cambridge info and auto-translate
   const fetchInfo = useCallback(
@@ -97,17 +95,17 @@ export default function AddOrEditCard() {
           vietnameseTranslations: data.vietnameseTranslations || [],
         };
 
-        setInfo(newInfo);
-        setPhonetic(newInfo.phonetic);
+        setCambridgeInfo(newInfo);
+        setField('phonetic', newInfo.phonetic);
         // Don't auto-fill Vietnamese and Example - let user choose from suggestions
       } catch (error) {
         console.error('Failed to fetch Cambridge info:', error);
         clearFormData();
       } finally {
-        setLoading(false);
+        setFetchingCambridge(false);
       }
     },
-    [clearFormData]
+    [clearFormData, setCambridgeInfo, setField, setFetchingCambridge]
   );
 
   // Fetch Cambridge info with debouncing
@@ -116,17 +114,17 @@ export default function AddOrEditCard() {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
-      setLoading(true);
+      setFetchingCambridge(true);
       debounceRef.current = setTimeout(() => {
         fetchInfo(word);
       }, DEBOUNCE_DELAY);
     },
-    [fetchInfo]
+    [fetchInfo, setFetchingCambridge]
   );
 
   // Fetch Cambridge info effect
   useEffect(() => {
-    if (!cardLoaded || editing) return;
+    if (!cardLoaded || isEditing) return;
 
     const trimmedEnglish = english.trim();
     if (!trimmedEnglish) {
@@ -135,88 +133,95 @@ export default function AddOrEditCard() {
     }
 
     debouncedFetchInfo(trimmedEnglish);
-  }, [english, editing, cardLoaded, clearFormData, debouncedFetchInfo]);
+  }, [english, isEditing, cardLoaded, clearFormData, debouncedFetchInfo]);
 
   // Input change handlers
   const handleEnglishChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setEnglish(e.target.value);
-      setAdded(false);
+      setField('english', e.target.value);
     },
-    []
+    [setField]
   );
 
   const handleVietnameseChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setVietnamese(e.target.value);
+      setField('vietnamese', e.target.value);
     },
-    []
+    [setField]
   );
 
   const handleExampleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setExample(e.target.value);
+      setField('example', e.target.value);
     },
-    []
+    [setField]
   );
 
   // Form submission handler
-  const handleAddOrEdit = useCallback(() => {
+  const handleAddOrEdit = useCallback(async () => {
     const trimmedEnglish = english.trim();
     const trimmedVietnamese = vietnamese.trim();
 
     if (!trimmedEnglish || !trimmedVietnamese) return;
 
+    setSubmitting(true);
+    
     try {
-      if (editing && id) {
+      if (isEditing && editingCardId) {
         // Update existing card
-        const cards = getAllCards();
-        const existingCard = cards.find((card) => card.id === id);
+        const existingCard = cards.find((card) => card.id === editingCardId);
         if (existingCard) {
           updateCard({
             ...existingCard,
             english: trimmedEnglish,
             vietnamese: trimmedVietnamese,
             example: example.trim(),
+            phonetic: phonetic.trim(),
           });
-          setAdded(true);
-          setTimeout(() => setAdded(false), SUCCESS_MESSAGE_DURATION);
-          window.dispatchEvent(new Event('storage'));
+          showNotification('success', 'Card updated successfully!');
           navigate('/');
         }
       } else {
         // Add new card
-        addCardToStorage({
+        addCard({
           english: trimmedEnglish,
           vietnamese: trimmedVietnamese,
           example: example.trim(),
-          phonetic: info?.phonetic || '',
+          phonetic: info?.phonetic || phonetic.trim(),
         });
 
         // Reset form
-        setEnglish('');
-        setVietnamese('');
-        setExample('');
-        setInfo(null);
-        setAdded(true);
-        setTimeout(() => setAdded(false), SUCCESS_MESSAGE_DURATION);
-        window.dispatchEvent(new Event('storage'));
+        resetForm();
+        showNotification('success', 'Card added successfully!');
+        englishInputRef.current?.focus();
       }
     } catch (error) {
-      alert('error: ' + error);
-      console.error('Failed to save card:', error);
+      console.error('Error adding/editing card:', error);
+      showNotification('error', 'Failed to save card. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
-  }, [english, vietnamese, example, editing, id, info?.phonetic, navigate]);
+  }, [english, vietnamese, example, phonetic, isEditing, editingCardId, cards, updateCard, addCard, showNotification, navigate, resetForm, info, setSubmitting]);
+
+  // Navigation handlers
+  const handleNavigateHome = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
+
+  const handleNavigateReview = useCallback(() => {
+    navigate('/review');
+  }, [navigate]);
+
 
   return (
     <PageContainer
-      title={editing ? '✏️ Edit Card' : '📝 Add New Card'}
+      title={isEditing ? '✏️ Edit Card' : '📝 Add New Card'}
       leftButton={
         <Button
           variant='outline'
           size='icon'
           className='rounded-lg w-10 h-10 min-w-0'
-          onClick={() => navigate('/')}
+          onClick={handleNavigateHome}
           aria-label='Back to Home'
         >
           <span className='text-xl'>🏠</span>
@@ -227,7 +232,7 @@ export default function AddOrEditCard() {
           variant='outline'
           size='icon'
           className='rounded-lg w-10 h-10 min-w-0'
-          onClick={() => navigate('/review')}
+          onClick={handleNavigateReview}
           aria-label='Go to Review'
         >
           <span className='text-xl'>📖</span>
@@ -250,19 +255,18 @@ export default function AddOrEditCard() {
                 english ? 'border-blue-500' : 'border-slate-200'
               }`}
               ref={englishInputRef}
-              readOnly={editing}
-              autoFocus={!editing}
+              readOnly={isEditing}
+              autoFocus={!isEditing}
             />
-            {!editing && english && (
+            {!isEditing && english && (
               <Button
                 type='button'
                 variant='ghost'
                 size='icon'
                 className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
                 onClick={() => {
-                  setEnglish('');
-                  setInfo(null);
-                  setAdded(false);
+                  setField('english', '');
+                  setCambridgeInfo(undefined);
                   englishInputRef.current?.focus();
                 }}
                 aria-label='Clear English input'
@@ -273,7 +277,7 @@ export default function AddOrEditCard() {
               </Button>
             )}
           </div>
-          {editing
+          {isEditing
             ? phonetic && (
                 <div className='font-semibold text-lg mb-1 mt-1 flex items-center gap-2'>
                   <span className='text-slate-400 text-sm'>{phonetic}</span>
@@ -322,7 +326,7 @@ export default function AddOrEditCard() {
                 size='icon'
                 className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
                 onClick={() => {
-                  setVietnamese('');
+                  setField('vietnamese', '');
                   vietnameseInputRef.current?.focus();
                 }}
                 aria-label='Clear Vietnamese input'
@@ -334,12 +338,12 @@ export default function AddOrEditCard() {
             )}
           </div>
           {/* Chips for Vietnamese translation suggestions */}
-          {!editing &&
+          {!isEditing &&
             info &&
             Array.isArray(info.vietnameseTranslations) &&
             info.vietnameseTranslations.length > 0 && (
               <div className='flex flex-wrap gap-2 mt-2'>
-                {info.vietnameseTranslations.map((vi, i) => (
+                {info.vietnameseTranslations.map((vi: string, i: number) => (
                   <button
                     key={i}
                     type='button'
@@ -350,7 +354,7 @@ export default function AddOrEditCard() {
                         : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                     }
                   `}
-                    onClick={() => setVietnamese(vi)}
+                    onClick={() => setField('vietnamese', vi)}
                   >
                     {vi}
                   </button>
@@ -382,7 +386,7 @@ export default function AddOrEditCard() {
                 size='icon'
                 className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
                 onClick={() => {
-                  setExample('');
+                  setField('example', '');
                   exampleTextareaRef.current?.focus();
                 }}
                 aria-label='Clear Example input'
@@ -394,12 +398,12 @@ export default function AddOrEditCard() {
             )}
           </div>
           {/* Chips for example suggestions */}
-          {!editing &&
+          {!isEditing &&
             info &&
             Array.isArray(info.examples) &&
             info.examples.length > 0 && (
               <div className='flex flex-wrap gap-2 mt-2'>
-                {info.examples.map((ex, i) => (
+                {info.examples.map((ex: string, i: number) => (
                   <button
                     key={i}
                     type='button'
@@ -410,7 +414,7 @@ export default function AddOrEditCard() {
                         : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                     }
                   `}
-                    onClick={() => setExample(ex)}
+                    onClick={() => setField('example', ex)}
                   >
                     {ex}
                   </button>
@@ -421,11 +425,7 @@ export default function AddOrEditCard() {
 
         {/* Padding to prevent content from being hidden behind sticky button */}
         <div className='pb-24'>
-          {added && (
-            <div className='text-green-500 text-center font-medium'>
-              {editing ? 'Saved!' : 'Added!'}
-            </div>
-          )}
+          {/* Notifications now handled by UI store */}
         </div>
       </div>
 
@@ -441,9 +441,9 @@ export default function AddOrEditCard() {
           <Button
             className='w-full text-base py-3 rounded-xl'
             onClick={handleAddOrEdit}
-            disabled={!english || !vietnamese || loading}
+            disabled={!english || !vietnamese || isFetching || isSubmitting}
           >
-            {loading ? 'Loading...' : editing ? 'Save Changes' : 'Add Card'}
+            {isFetching || isSubmitting ? 'Loading...' : isEditing ? 'Save Changes' : 'Add Card'}
           </Button>
         </div>
       </div>

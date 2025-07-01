@@ -1,14 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import {
-  getDueCards,
-  scheduleNext,
-  updateCard,
-  speak,
-  clearSessionQueue,
-} from '../lib/utils';
+import { speak } from '../lib/utils';
 import type { Card, CardGrade } from '../lib/utils';
+import { useDueCards, useCardsActions } from '../store/cardsStore';
 import PageContainer from '@/components/ui/PageContainer';
 import VolumeButton from '@/components/ui/VolumeButton';
 import { FaEdit, FaRegHandPointer } from 'react-icons/fa';
@@ -159,8 +154,11 @@ function ReviewCardBack({
 export default function ReviewCard() {
   const navigate = useNavigate();
   const [flipped, setFlipped] = useState(false);
-  const [dueCards, setDueCards] = useState<Card[]>(() => getDueCards());
   const [currentIdx, setCurrentIdx] = useState(0);
+  
+  // Use Zustand selectors
+  const dueCards = useDueCards();
+  const { reviewCard, clearSession } = useCardsActions();
   const card = dueCards[currentIdx];
 
   // Track if we should auto play audio (only when a new card is shown, not when flipping)
@@ -174,34 +172,29 @@ export default function ReviewCard() {
 
   // Clear session queue when component mounts (new review session)
   useEffect(() => {
-    clearSessionQueue();
-    // Re-fetch due cards after clearing session
-    setDueCards(getDueCards());
-  }, []);
+    clearSession();
+  }, [clearSession]);
 
   const handleReview = (grade: CardGrade) => {
     if (!card || animation.isDismissing) return;
     
-    // Store the next card before updating dueCards
-    const newDueCardsPreview = getDueCards();
-    const nextCardToShow = newDueCardsPreview[1] || newDueCardsPreview[0] || null;
+    // Store the next card before updating
+    const nextCardToShow = dueCards[1] || dueCards[0] || null;
     
     // Start dismissal animation
     animation.startDismissAnimation(grade === 'correct' ? 'right' : 'left', nextCardToShow);
 
-    // Update the card in storage
-    const updated = scheduleNext(card, grade);
-    updateCard(updated);
+    // Update the card using Zustand store
+    reviewCard(card, grade);
 
-    // Update due cards and UI immediately for buttons/count
-    const newDueCards = getDueCards();
-    if (newDueCards.length === 0) {
+    // The dueCards will be automatically updated by Zustand
+    // Check if we'll have more cards after this review
+    const willHaveMoreCards = dueCards.length > 1;
+    if (!willHaveMoreCards) {
       // No more cards due, but delay navigation for animation
-      setDueCards([]);
       setCurrentIdx(0);
       animation.resetAnimation();
     } else {
-      setDueCards(newDueCards);
       setCurrentIdx(0);
       setFlipped(false);
       setShouldAutoPlay(true);

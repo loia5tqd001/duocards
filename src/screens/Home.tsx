@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useEffect, useMemo, useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   FaBook,
   FaCheckCircle,
@@ -9,33 +9,22 @@ import {
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import type { Card } from '../lib/utils';
-import {
-  getAllCards,
-  getStats,
-  formatTimeUntil,
-  deleteCard,
-} from '../lib/utils';
+import { formatTimeUntil } from '../lib/utils';
 import PageContainer from '@/components/ui/PageContainer';
+import { useStats, useFilteredCards, useCardsActions, useCards } from '../store/cardsStore';
 
 function Home() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState(() => getStats());
-  const [cards, setCards] = useState<Card[]>(() => getAllCards());
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-
-  useEffect(() => {
-    const onStorage = () => {
-      setStats(getStats());
-      setCards(getAllCards());
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
-
-  useEffect(() => {
-    setStats(getStats());
-    setCards(getAllCards());
-  }, []);
+  
+  // Use Zustand selectors
+  const stats = useStats();
+  const cards = useCards();
+  
+  // Memoize selectedFilters to prevent unnecessary re-renders
+  const memoizedFilters = useMemo(() => selectedFilters, [selectedFilters]);
+  const filteredCards = useFilteredCards(memoizedFilters);
+  const { deleteCard } = useCardsActions();
 
   const statusMap: Record<string, Card['status']> = {
     New: 'new',
@@ -76,20 +65,7 @@ function Home() {
     );
   };
 
-  // Filter cards based on selected filters, then sort by status order and nextReview
-  const filteredCards = useMemo(() => {
-    const statusOrder: Card['status'][] = ['learning', 'new', 'learned'];
-    return (
-      selectedFilters.length === 0
-        ? cards.slice()
-        : cards.filter((card) => selectedFilters.includes(card.status))
-    ).sort((a, b) => {
-      const statusDiff =
-        statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
-      if (statusDiff !== 0) return statusDiff;
-      return a.nextReview - b.nextReview;
-    });
-  }, [cards, selectedFilters]);
+  // filteredCards is already computed by the selector
 
   // Display label for card status
   const getStatusLabel = (status: Card['status']) => {
@@ -213,9 +189,6 @@ function Home() {
                     onClick={() => {
                       if (window.confirm('Delete this card?')) {
                         deleteCard(card.id);
-                        setCards(getAllCards());
-                        setStats(getStats());
-                        window.dispatchEvent(new Event('storage'));
                       }
                     }}
                   >
