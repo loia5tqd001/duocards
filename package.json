@@ -1,5 +1,5 @@
 {
-  "name": "duocards",
+  "name": "vocards",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/supabase-js": "^2.50.2",
     "@tailwindcss/vite": "^4.1.10",
     "axios": "^1.10.0",
     "cheerio": "^1.1.0",

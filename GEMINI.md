@@ -2,5 +2,5 @@
 - Update README.md and TODO.md as features are added/changed.
 - All UI/UX must be designed mobile-first, then enhanced for desktop.
 - Use shadcn/ui for components and please follow its design system.
-- Follow best practices for React, TypeScript, and Tailwind CSS. Do not take shortcuts or hacks unless it's absolutely necessary and please comment a NOTE in that case.
+- Follow best practices for React, TypeScript, and Tailwind CSS. Do not take shortcuts or hacks unless it's absolutely necessary and please comment a NOTE in that case. i.e: Never use `any` type.
 - Always try refactoring code to be more readable and maintainable after a big change.

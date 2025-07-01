@@ -27,6 +27,9 @@ A mobile-first flashcard application designed to help users learn vocabulary eff
 - **Text-to-Speech**: Pronunciation support for words and example sentences
 - **Mobile-First Design**: Optimized for smartphones with swipe gestures
 - **Real-time Statistics**: Track your learning progress
+- **Cloud Sync**: Optional authentication (Google & Facebook) with Supabase backend
+- **Local-First**: Works offline, syncs when online
+- **Cross-Device**: Access your cards from any device after signing in
 
 ### ⌨️ Controls
 
@@ -181,13 +184,70 @@ New → Correct (1 min) → Correct (10 min) → Correct (1 day) → Correct (2.
 - **Frontend**: React 18, TypeScript
 - **Styling**: Tailwind CSS, shadcn/ui
 - **Routing**: React Router
-- **State**: React hooks, localStorage
+- **State Management**: Zustand with persist middleware
+- **Authentication**: Supabase Auth (Google & Facebook OAuth)
+- **Database**: Supabase (PostgreSQL)
+- **Storage**: localStorage (local-first) + Supabase (cloud sync)
 - **Build**: Vite
 - **Package Manager**: pnpm
 
-## Data Storage
+## Data Storage & Synchronization
 
-All data is stored locally in the browser's localStorage. Cards are automatically migrated from older formats to the new simplified algorithm structure.
+### Local-First Architecture
+
+The app uses a **local-first** approach where:
+
+- All data is stored locally in the browser's localStorage
+- Every interaction feels instant (no network delays)
+- Works completely offline
+- Cards are automatically migrated from older formats
+
+### Cloud Sync (Optional)
+
+When you sign in (Google or Facebook):
+
+- Your local cards are automatically synced to Supabase
+- Cards are backed up securely in the cloud
+- Access your cards from any device
+- Automatic conflict resolution between devices
+- Periodic background sync every 5 minutes
+
+### How Sync Works
+
+1. **First Sign-In**: Local cards are uploaded to the cloud
+2. **Subsequent Sign-Ins**: Cards are merged intelligently
+3. **Conflict Resolution**: Newer cards take precedence
+4. **Optimistic Updates**: All changes are instant locally, then synced
+5. **Sign-Out**: Local data remains, cloud sync stops
+
+### Supabase Setup
+
+To enable cloud sync:
+
+1. Create a new Supabase project at [supabase.com](https://supabase.com)
+2. Copy `.env.example` to `.env.local` and fill in your credentials:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+3. Configure OAuth providers in your Supabase dashboard:
+   - Go to Authentication > Settings
+   - Enable Google provider and/or Facebook provider
+   - Add your site URL to allowed redirect URLs
+   - For Facebook: See [FACEBOOK_SETUP.md](./FACEBOOK_SETUP.md) for detailed instructions
+4. Run the database migration:
+   ```sql
+   -- Copy and run the contents of supabase_migration.sql in your SQL editor
+   ```
+
+### Database Schema
+
+The Supabase database uses:
+
+- **Row Level Security (RLS)** for user isolation
+- **Automatic timestamping** for created_at/updated_at
+- **Optimized indexes** for performance
+- **User-scoped policies** for data security
 
 ## Contributing
 

@@ -1,6 +1,6 @@
 {
-  "name": "DuoCards",
-  "short_name": "DuoCards",
+  "name": "Vocards",
+  "short_name": "Vocards",
   "description": "A flashcard app for language learning",
   "start_url": "/",
   "display": "standalone",

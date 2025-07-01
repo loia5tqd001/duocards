@@ -61,6 +61,14 @@ Common:
 - [x] Edit flashcard from Home screen (reuses AddCard form)
 - [x] Swipe gestures for review (left/right)
 - [x] Arrow key navigation (←/→)
+- [x] **Cloud Sync & Authentication**
+  - [x] Google OAuth integration with Supabase
+  - [x] Facebook OAuth integration with Supabase
+  - [x] Local-first architecture with cloud backup
+  - [x] Automatic sync on login/logout
+  - [x] Optimistic updates with conflict resolution
+  - [x] Real-time sync status indicators
+  - [x] Cross-device data synchronization
 
 ## 🚧 In Progress
 
@@ -102,7 +110,7 @@ Common:
 
 ### Advanced Features
 
-- [ ] Sync across devices
+- [x] **Sync across devices** - Implemented with Supabase + Google OAuth
 - [ ] Shared decks marketplace
 - [ ] AI-powered card generation
 - [ ] Contextual learning (sentences → words)
