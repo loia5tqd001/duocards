@@ -273,6 +273,16 @@ MIT
 
 ## Features
 
+## Pre-commit Formatting
+
+This project uses [Prettier](https://prettier.io/), [lint-staged](https://github.com/okonet/lint-staged), and [Husky](https://typicode.github.io/husky) to automatically format staged files before each commit.
+
+- To manually format all files, run:
+  ```sh
+  pnpm format
+  ```
+- On each commit, only staged files will be formatted automatically.
+- If you install dependencies, Husky will be set up automatically via the `prepare` script.
 - You can **edit** any flashcard by clicking the pencil icon on the Home screen. This opens the edit form, pre-filled with the card's data.
 - You can **delete** any flashcard by clicking the trash icon on the Home screen. You will be asked to confirm before deletion.
 - The add card form is also used for editing cards. The edit route is `/edit/:id`.
