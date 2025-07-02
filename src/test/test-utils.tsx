@@ -9,19 +9,19 @@ import {
   screen,
   waitFor,
   type RenderOptions,
-} from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import type { ReactElement, ReactNode } from "react";
-import { MemoryRouter, type MemoryRouterProps } from "react-router-dom";
-import { expect, vi } from "vitest";
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import type { ReactElement, ReactNode } from 'react';
+import { MemoryRouter, type MemoryRouterProps } from 'react-router-dom';
+import { expect, vi } from 'vitest';
 
 // Store imports
-import { useCardsStore } from "../store/cardsStore";
-import { useFormStore } from "../store/formStore";
-import { useUIStore } from "../store/uiStore";
+import { useCardsStore } from '../store/cardsStore';
+import { useFormStore } from '../store/formStore';
+import { useUIStore } from '../store/uiStore';
 
 // Types
-import type { Card } from "../lib/utils";
+import type { Card } from '../lib/utils';
 
 // ============================================================================
 // Test Data Factories
@@ -29,12 +29,12 @@ import type { Card } from "../lib/utils";
 
 export const createMockCard = (overrides: Partial<Card> = {}): Card => ({
   id: `test-card-${Math.random().toString(36).substring(2, 11)}`,
-  english: "test",
-  vietnamese: "thử nghiệm",
-  example: "This is a test example.",
-  phonetic: "/test/",
+  english: 'test',
+  vietnamese: 'thử nghiệm',
+  example: 'This is a test example.',
+  phonetic: '/test/',
   createdAt: Date.now() - 86400000, // 1 day ago
-  status: "new",
+  status: 'new',
   interval: 0,
   stepIndex: 0,
   nextReview: Date.now() - 3600000, // 1 hour ago (due)
@@ -46,23 +46,23 @@ export const createMockCard = (overrides: Partial<Card> = {}): Card => ({
 
 export const createMockCardSet = () => [
   createMockCard({
-    id: "1",
-    english: "problem",
-    vietnamese: "vấn đề",
-    example: "This is a serious problem.",
-    phonetic: "/ˈprɒbləm/",
-    status: "learned",
+    id: '1',
+    english: 'problem',
+    vietnamese: 'vấn đề',
+    example: 'This is a serious problem.',
+    phonetic: '/ˈprɒbləm/',
+    status: 'learned',
     interval: 4,
     reps: 3,
     nextReview: Date.now() - 86400000, // Due yesterday
   }),
   createMockCard({
-    id: "2",
-    english: "solution",
-    vietnamese: "giải pháp",
-    example: "We need to find a solution.",
-    phonetic: "/səˈluːʃən/",
-    status: "learning",
+    id: '2',
+    english: 'solution',
+    vietnamese: 'giải pháp',
+    example: 'We need to find a solution.',
+    phonetic: '/səˈluːʃən/',
+    status: 'learning',
     interval: 1,
     stepIndex: 1,
     reps: 1,
@@ -73,12 +73,12 @@ export const createMockCardSet = () => [
 export const createMockCardSetWithThree = () => [
   ...createMockCardSet(),
   createMockCard({
-    id: "3",
-    english: "challenge",
-    vietnamese: "thử thách",
-    example: "This is a big challenge.",
-    phonetic: "/ˈtʃælɪndʒ/",
-    status: "new",
+    id: '3',
+    english: 'challenge',
+    vietnamese: 'thử thách',
+    example: 'This is a big challenge.',
+    phonetic: '/ˈtʃælɪndʒ/',
+    status: 'new',
     interval: 0,
     stepIndex: 0,
     reps: 0,
@@ -101,10 +101,10 @@ export const resetAllStores = () => {
 
   // Reset form store
   useFormStore.setState({
-    english: "",
-    vietnamese: "",
-    example: "",
-    phonetic: "",
+    english: '',
+    vietnamese: '',
+    example: '',
+    phonetic: '',
     isEditing: false,
     editingCardId: undefined,
     cardLoaded: false,
@@ -126,9 +126,9 @@ export const resetAllStores = () => {
 export const populateCardsStore = (cards: Card[] = createMockCardSet()) => {
   useCardsStore.setState((state) => {
     const newStats = {
-      new: cards.filter((c) => c.status === "new").length,
-      learning: cards.filter((c) => c.status === "learning").length,
-      learned: cards.filter((c) => c.status === "learned").length,
+      new: cards.filter((c) => c.status === 'new').length,
+      learning: cards.filter((c) => c.status === 'learning').length,
+      learned: cards.filter((c) => c.status === 'learned').length,
       due: cards.filter((c) => c.nextReview <= Date.now()).length,
       total: cards.length,
     };
@@ -147,10 +147,10 @@ export const setEditingMode = (cardId: string, cardData?: Partial<Card>) => {
     isEditing: true,
     editingCardId: cardId,
     cardLoaded: true,
-    english: cardData?.english || "test-english",
-    vietnamese: cardData?.vietnamese || "test-vietnamese",
-    example: cardData?.example || "test-example",
-    phonetic: cardData?.phonetic || "/test/",
+    english: cardData?.english || 'test-english',
+    vietnamese: cardData?.vietnamese || 'test-vietnamese',
+    example: cardData?.example || 'test-example',
+    phonetic: cardData?.phonetic || '/test/',
   });
 };
 
@@ -159,10 +159,10 @@ export const setAddMode = () => {
     isEditing: false,
     editingCardId: undefined,
     cardLoaded: true,
-    english: "",
-    vietnamese: "",
-    example: "",
-    phonetic: "",
+    english: '',
+    vietnamese: '',
+    example: '',
+    phonetic: '',
   });
 };
 
@@ -170,7 +170,7 @@ export const setAddMode = () => {
 // Custom Render Functions
 // ============================================================================
 
-interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
+interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   routerProps?: MemoryRouterProps;
   initialStoreState?: {
     cards?: Card[];
@@ -182,10 +182,10 @@ interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
 export function renderWithRouter(
   ui: ReactElement,
   {
-    routerProps = { initialEntries: ["/"] },
+    routerProps = { initialEntries: ['/'] },
     initialStoreState,
     ...renderOptions
-  }: CustomRenderOptions = {},
+  }: CustomRenderOptions = {}
 ) {
   // Set up initial store state
   if (initialStoreState) {
@@ -197,7 +197,7 @@ export function renderWithRouter(
 
     if (initialStoreState.editing && initialStoreState.editingCardId) {
       const card = initialStoreState.cards?.find(
-        (c) => c.id === initialStoreState.editingCardId,
+        (c) => c.id === initialStoreState.editingCardId
       );
       setEditingMode(initialStoreState.editingCardId, card);
     }
@@ -222,8 +222,8 @@ export function renderWithCards(ui: ReactElement, cards?: Card[]) {
 
 export function renderInEditMode(
   ui: ReactElement,
-  cardId = "1",
-  cards?: Card[],
+  cardId = '1',
+  cards?: Card[]
 ) {
   const testCards = cards || createMockCardSet();
   return renderWithRouter(ui, {
@@ -242,7 +242,7 @@ export function renderInEditMode(
 
 export const mockFetch = (
   responseData: unknown,
-  options: { ok?: boolean; status?: number } = {},
+  options: { ok?: boolean; status?: number } = {}
 ) => {
   const mockResponse = {
     ok: options.ok ?? true,
@@ -252,17 +252,17 @@ export const mockFetch = (
   };
 
   global.fetch = vi.fn(() =>
-    Promise.resolve(mockResponse as unknown as Response),
+    Promise.resolve(mockResponse as unknown as Response)
   );
   return global.fetch;
 };
 
 export const mockCambridgeAPI = (overrides = {}) => {
   const defaultResponse = {
-    word: "test",
-    phonetic: "/test/",
-    examples: ["Test example"],
-    vietnameseTranslations: ["thử nghiệm"],
+    word: 'test',
+    phonetic: '/test/',
+    examples: ['Test example'],
+    vietnameseTranslations: ['thử nghiệm'],
     ...overrides,
   };
 
@@ -270,7 +270,7 @@ export const mockCambridgeAPI = (overrides = {}) => {
 };
 
 export const mockNetworkError = () => {
-  global.fetch = vi.fn(() => Promise.reject(new Error("Network error")));
+  global.fetch = vi.fn(() => Promise.reject(new Error('Network error')));
   return global.fetch;
 };
 
@@ -303,9 +303,9 @@ export const expectFormFieldPlaceholder = (placeholder: string) => {
 
 export const expectButton = (
   name: string | RegExp,
-  options?: { disabled?: boolean },
+  options?: { disabled?: boolean }
 ) => {
-  const button = screen.getByRole("button", { name });
+  const button = screen.getByRole('button', { name });
   expect(button).toBeInTheDocument();
   if (options?.disabled !== undefined) {
     if (options.disabled) {
@@ -322,7 +322,7 @@ export const expectButton = (
 // ============================================================================
 
 export const navigateToHome = async (
-  user: ReturnType<typeof userEvent.setup>,
+  user: ReturnType<typeof userEvent.setup>
 ) => {
   // Check if we're already on the home page
   const cardsText = screen.queryByText(/\d+ Cards$/);
@@ -332,7 +332,7 @@ export const navigateToHome = async (
   }
 
   // Look for the home button
-  const homeButton = screen.queryByLabelText("Back to Home");
+  const homeButton = screen.queryByLabelText('Back to Home');
   if (homeButton) {
     await user.click(homeButton);
     await waitFor(() => {
@@ -340,45 +340,45 @@ export const navigateToHome = async (
     });
   } else {
     throw new Error(
-      "Cannot navigate to home: no home button found and not already on home page",
+      'Cannot navigate to home: no home button found and not already on home page'
     );
   }
 };
 
 export const navigateToAddCard = async (
-  user: ReturnType<typeof userEvent.setup>,
+  user: ReturnType<typeof userEvent.setup>
 ) => {
-  const addButton = screen.getByRole("button", { name: /📝 add card/i });
+  const addButton = screen.getByRole('button', { name: /📝 add card/i });
   await user.click(addButton);
   await waitFor(
     () => {
-      expect(screen.getByText("📝 Add New Card")).toBeInTheDocument();
+      expect(screen.getByText('📝 Add New Card')).toBeInTheDocument();
     },
-    { timeout: TIMEOUTS.MEDIUM },
+    { timeout: TIMEOUTS.MEDIUM }
   );
 };
 
 export const navigateToEditCard = async (
   user: ReturnType<typeof userEvent.setup>,
-  cardIndex = 0,
+  cardIndex = 0
 ) => {
-  const editButtons = screen.getAllByTitle("Edit Card");
+  const editButtons = screen.getAllByTitle('Edit Card');
   await user.click(editButtons[cardIndex]);
   await waitFor(
     () => {
-      expect(screen.getByText("✏️ Edit Card")).toBeInTheDocument();
+      expect(screen.getByText('✏️ Edit Card')).toBeInTheDocument();
     },
-    { timeout: 5000 },
+    { timeout: 5000 }
   );
 };
 
 export const navigateToReview = async (
-  user: ReturnType<typeof userEvent.setup>,
+  user: ReturnType<typeof userEvent.setup>
 ) => {
-  const reviewButton = screen.getByRole("button", { name: /📖 start review/i });
+  const reviewButton = screen.getByRole('button', { name: /📖 start review/i });
   await user.click(reviewButton);
   await waitFor(() => {
-    expect(screen.getByText("Review Cards")).toBeInTheDocument();
+    expect(screen.getByText('Review Cards')).toBeInTheDocument();
   });
 };
 
@@ -388,17 +388,17 @@ export const navigateToReview = async (
 
 export const fillCardForm = async (
   user: ReturnType<typeof userEvent.setup>,
-  data: { english?: string; vietnamese?: string; example?: string },
+  data: { english?: string; vietnamese?: string; example?: string }
 ) => {
   if (data.english) {
-    const englishField = screen.getByPlaceholderText("Enter English word");
+    const englishField = screen.getByPlaceholderText('Enter English word');
     await user.clear(englishField);
     await user.type(englishField, data.english);
   }
 
   if (data.vietnamese) {
     const vietnameseField = screen.getByPlaceholderText(
-      "Vietnamese translation",
+      'Vietnamese translation'
     );
     await user.clear(vietnameseField);
     await user.type(vietnameseField, data.vietnamese);
@@ -406,7 +406,7 @@ export const fillCardForm = async (
 
   if (data.example) {
     const exampleField = screen.getByPlaceholderText(
-      "Example sentence (English)",
+      'Example sentence (English)'
     );
     await user.clear(exampleField);
     await user.type(exampleField, data.example);
@@ -414,7 +414,7 @@ export const fillCardForm = async (
 };
 
 export const submitForm = async (user: ReturnType<typeof userEvent.setup>) => {
-  const submitButton = screen.getByRole("button", {
+  const submitButton = screen.getByRole('button', {
     name: /^(add card|save changes)$/i,
   });
   await user.click(submitButton);
@@ -426,14 +426,14 @@ export const submitForm = async (user: ReturnType<typeof userEvent.setup>) => {
 
 export const waitForLoadingToFinish = () => {
   return waitFor(() => {
-    expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
   });
 };
 
 export const waitForNotification = () => {
   return waitFor(() => {
     // This would depend on how notifications are implemented
-    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 };
 
@@ -442,9 +442,9 @@ export const waitForNotification = () => {
 // ============================================================================
 
 export const debugStoreState = () => {
-  console.log("Cards Store:", useCardsStore.getState());
-  console.log("Form Store:", useFormStore.getState());
-  console.log("UI Store:", useUIStore.getState());
+  console.log('Cards Store:', useCardsStore.getState());
+  console.log('Form Store:', useFormStore.getState());
+  console.log('UI Store:', useUIStore.getState());
 };
 
 export const debugDOM = () => {
@@ -452,7 +452,7 @@ export const debugDOM = () => {
 };
 
 // Export screen from testing library for convenience
-export { screen, waitFor } from "@testing-library/react";
+export { screen, waitFor } from '@testing-library/react';
 
 // ============================================================================
 // Constants
@@ -460,17 +460,17 @@ export { screen, waitFor } from "@testing-library/react";
 
 export const TEST_IDS = {
   // Add test IDs as needed
-  CARD_LIST: "card-list",
-  CARD_ITEM: "card-item",
-  ADD_FORM: "add-form",
-  EDIT_FORM: "edit-form",
+  CARD_LIST: 'card-list',
+  CARD_ITEM: 'card-item',
+  ADD_FORM: 'add-form',
+  EDIT_FORM: 'edit-form',
 } as const;
 
 export const SELECTORS = {
   HOME_TITLE: /\d+ Cards$/,
-  ADD_CARD_TITLE: "📝 Add New Card",
-  EDIT_CARD_TITLE: "✏️ Edit Card",
-  REVIEW_TITLE: "Review Cards",
+  ADD_CARD_TITLE: '📝 Add New Card',
+  EDIT_CARD_TITLE: '✏️ Edit Card',
+  REVIEW_TITLE: 'Review Cards',
 } as const;
 
 export const TIMEOUTS = {

@@ -3,7 +3,10 @@ interface SwipeHintsProps {
   showCorrectHint: boolean;
 }
 
-export default function SwipeHints({ showIncorrectHint, showCorrectHint }: SwipeHintsProps) {
+export default function SwipeHints({
+  showIncorrectHint,
+  showCorrectHint,
+}: SwipeHintsProps) {
   return (
     <>
       {/* Incorrect hint (left) */}
@@ -12,7 +15,7 @@ export default function SwipeHints({ showIncorrectHint, showCorrectHint }: Swipe
           showIncorrectHint ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        <div className='bg-red-500 text-white px-4 py-2 rounded-lg font-semibold shadow-lg'>
+        <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold shadow-lg">
           Didn't get it!
         </div>
       </div>
@@ -23,7 +26,7 @@ export default function SwipeHints({ showIncorrectHint, showCorrectHint }: Swipe
           showCorrectHint ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        <div className='bg-green-500 text-white px-4 py-2 rounded-lg font-semibold shadow-lg'>
+        <div className="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold shadow-lg">
           Got it!
         </div>
       </div>

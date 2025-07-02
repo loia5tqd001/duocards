@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
-import { useAuthStore } from "@/store/authStore";
-import { useCardsStore } from "@/store/cardsStore";
+import { useEffect, useRef } from 'react';
+import { useAuthStore } from '@/store/authStore';
+import { useCardsStore } from '@/store/cardsStore';
 
 export function useAuthSync() {
   const { user, session, isInitialized } = useAuthStore();
@@ -25,7 +25,7 @@ export function useAuthSync() {
 
     // User just logged in
     if (wasLoggedIn || (user && userChanged)) {
-      console.log("User logged in, syncing data...");
+      console.log('User logged in, syncing data...');
 
       // If user has local cards, upload them first, then sync
       if (cards.length > 0) {
@@ -42,7 +42,7 @@ export function useAuthSync() {
 
     // User just logged out
     if (wasLoggedOut) {
-      console.log("User logged out, keeping local data");
+      console.log('User logged out, keeping local data');
       hasInitialSync.current = false;
     }
 
@@ -53,7 +53,7 @@ export function useAuthSync() {
         () => {
           syncWithSupabase();
         },
-        5 * 60 * 1000,
+        5 * 60 * 1000
       ); // 5 minutes
     }
 

@@ -1,6 +1,6 @@
-import { Component, type ErrorInfo, type ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface Props {
   children: ReactNode;
@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Error caught by boundary:", error, errorInfo);
+    console.error('Error caught by boundary:', error, errorInfo);
   }
 
   private handleReload = () => {
@@ -38,9 +38,9 @@ export class ErrorBoundary extends Component<Props, State> {
                 Something went wrong
               </h1>
               <p className="text-gray-600 text-sm mb-4">
-                {this.state.error?.message?.includes("Supabase")
-                  ? "The app is having trouble connecting to the server. You can still use the app locally."
-                  : "An unexpected error occurred. Please try reloading the page."}
+                {this.state.error?.message?.includes('Supabase')
+                  ? 'The app is having trouble connecting to the server. You can still use the app locally.'
+                  : 'An unexpected error occurred. Please try reloading the page.'}
               </p>
             </div>
             <Button onClick={this.handleReload} className="w-full">

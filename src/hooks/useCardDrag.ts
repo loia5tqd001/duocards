@@ -8,7 +8,11 @@ interface UseCardDragProps {
   onReview: (grade: 'correct' | 'incorrect') => void;
 }
 
-export function useCardDrag({ flipped, isDismissing, onReview }: UseCardDragProps) {
+export function useCardDrag({
+  flipped,
+  isDismissing,
+  onReview,
+}: UseCardDragProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragX, setDragX] = useState(0);
   const startX = useRef(0);
@@ -86,8 +90,10 @@ export function useCardDrag({ flipped, isDismissing, onReview }: UseCardDragProp
   };
 
   const rotation = dragX / 10;
-  const showIncorrectHint = dragX < -HINT_APPEAR_THRESHOLD && flipped && !isDismissing;
-  const showCorrectHint = dragX > HINT_APPEAR_THRESHOLD && flipped && !isDismissing;
+  const showIncorrectHint =
+    dragX < -HINT_APPEAR_THRESHOLD && flipped && !isDismissing;
+  const showCorrectHint =
+    dragX > HINT_APPEAR_THRESHOLD && flipped && !isDismissing;
 
   return {
     isDragging,

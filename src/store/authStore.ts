@@ -1,7 +1,7 @@
-import { create } from "zustand";
-import { subscribeWithSelector } from "zustand/middleware";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import type { User, Session } from "@supabase/supabase-js";
+import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import type { User, Session } from '@supabase/supabase-js';
 
 interface AuthState {
   user: User | null;
@@ -25,20 +25,20 @@ export const useAuthStore = create<AuthState>()(
 
     signInWithGoogle: async () => {
       if (!isSupabaseConfigured) {
-        console.warn("Supabase is not configured. Authentication unavailable.");
+        console.warn('Supabase is not configured. Authentication unavailable.');
         return;
       }
       try {
         set({ isLoading: true });
         const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
+          provider: 'google',
           options: {
             redirectTo: `${window.location.origin}/auth/callback`,
           },
         });
         if (error) throw error;
       } catch (error) {
-        console.error("Error signing in with Google:", error);
+        console.error('Error signing in with Google:', error);
         throw error;
       } finally {
         set({ isLoading: false });
@@ -47,20 +47,20 @@ export const useAuthStore = create<AuthState>()(
 
     signInWithFacebook: async () => {
       if (!isSupabaseConfigured) {
-        console.warn("Supabase is not configured. Authentication unavailable.");
+        console.warn('Supabase is not configured. Authentication unavailable.');
         return;
       }
       try {
         set({ isLoading: true });
         const { error } = await supabase.auth.signInWithOAuth({
-          provider: "facebook",
+          provider: 'facebook',
           options: {
             redirectTo: `${window.location.origin}/auth/callback`,
           },
         });
         if (error) throw error;
       } catch (error) {
-        console.error("Error signing in with Facebook:", error);
+        console.error('Error signing in with Facebook:', error);
         throw error;
       } finally {
         set({ isLoading: false });
@@ -69,7 +69,7 @@ export const useAuthStore = create<AuthState>()(
 
     signOut: async () => {
       if (!isSupabaseConfigured) {
-        console.warn("Supabase is not configured. Authentication unavailable.");
+        console.warn('Supabase is not configured. Authentication unavailable.');
         return;
       }
       try {
@@ -77,7 +77,7 @@ export const useAuthStore = create<AuthState>()(
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
       } catch (error) {
-        console.error("Error signing out:", error);
+        console.error('Error signing out:', error);
         throw error;
       } finally {
         set({ isLoading: false });
@@ -86,7 +86,7 @@ export const useAuthStore = create<AuthState>()(
 
     initialize: async () => {
       if (!isSupabaseConfigured) {
-        console.warn("Supabase is not configured. Authentication unavailable.");
+        console.warn('Supabase is not configured. Authentication unavailable.');
         set({ isInitialized: true });
         return;
       }
@@ -112,9 +112,9 @@ export const useAuthStore = create<AuthState>()(
           });
         });
       } catch (error) {
-        console.error("Error initializing auth:", error);
+        console.error('Error initializing auth:', error);
         set({ isInitialized: true });
       }
     },
-  })),
+  }))
 );

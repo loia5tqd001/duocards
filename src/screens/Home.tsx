@@ -1,24 +1,24 @@
-import { Button } from "@/components/ui/button";
-import { useState, useMemo } from "react";
+import { Button } from '@/components/ui/button';
+import { useState, useMemo } from 'react';
 import {
   FaBook,
   FaCheckCircle,
   FaLightbulb,
   FaTrash,
   FaEdit,
-} from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import type { Card } from "../lib/utils";
-import { formatTimeUntil } from "../lib/utils";
-import PageContainer from "@/components/ui/PageContainer";
+} from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import type { Card } from '../lib/utils';
+import { formatTimeUntil } from '../lib/utils';
+import PageContainer from '@/components/ui/PageContainer';
 import {
   useStats,
   useFilteredCards,
   useCardsActions,
   useCards,
-} from "../store/cardsStore";
-import { LoginButton } from "@/components/auth/LoginButton";
-import { SyncStatus } from "@/components/auth/SyncStatus";
+} from '../store/cardsStore';
+import { LoginButton } from '@/components/auth/LoginButton';
+import { SyncStatus } from '@/components/auth/SyncStatus';
 
 function Home() {
   const navigate = useNavigate();
@@ -33,33 +33,33 @@ function Home() {
   const filteredCards = useFilteredCards(memoizedFilters);
   const { deleteCard } = useCardsActions();
 
-  const statusMap: Record<string, Card["status"]> = {
-    New: "new",
-    Learning: "learning",
-    Learned: "learned",
+  const statusMap: Record<string, Card['status']> = {
+    New: 'new',
+    Learning: 'learning',
+    Learned: 'learned',
   };
 
   const statList = [
     {
-      label: "New",
+      label: 'New',
       value: stats.new,
-      color: "text-blue-500",
+      color: 'text-blue-500',
       icon: <FaBook size={24} color="#3b82f6" />,
-      sublabel: "Not Started",
+      sublabel: 'Not Started',
     },
     {
-      label: "Learning",
+      label: 'Learning',
       value: stats.learning,
-      color: "text-yellow-500",
+      color: 'text-yellow-500',
       icon: <FaLightbulb size={24} color="#eab308" />,
-      sublabel: "In Progress",
+      sublabel: 'In Progress',
     },
     {
-      label: "Learned",
+      label: 'Learned',
       value: stats.learned,
-      color: "text-green-500",
+      color: 'text-green-500',
       icon: <FaCheckCircle size={24} color="#22c55e" />,
-      sublabel: "Completed",
+      sublabel: 'Completed',
     },
   ];
 
@@ -68,37 +68,37 @@ function Home() {
     setSelectedFilters((prev) =>
       prev.includes(status)
         ? prev.filter((f) => f !== status)
-        : [...prev, status],
+        : [...prev, status]
     );
   };
 
   // filteredCards is already computed by the selector
 
   // Display label for card status
-  const getStatusLabel = (status: Card["status"]) => {
+  const getStatusLabel = (status: Card['status']) => {
     switch (status) {
-      case "new":
-        return "New";
-      case "learning":
-        return "Learning";
-      case "learned":
-        return "Learned";
+      case 'new':
+        return 'New';
+      case 'learning':
+        return 'Learning';
+      case 'learned':
+        return 'Learned';
       default:
         return status;
     }
   };
 
   // Display color for card status
-  const getStatusColor = (status: Card["status"]) => {
+  const getStatusColor = (status: Card['status']) => {
     switch (status) {
-      case "new":
-        return "text-blue-500 bg-blue-50";
-      case "learning":
-        return "text-yellow-500 bg-yellow-50";
-      case "learned":
-        return "text-green-500 bg-green-50";
+      case 'new':
+        return 'text-blue-500 bg-blue-50';
+      case 'learning':
+        return 'text-yellow-500 bg-yellow-50';
+      case 'learned':
+        return 'text-green-500 bg-green-50';
       default:
-        return "text-gray-500 bg-gray-50";
+        return 'text-gray-500 bg-gray-50';
     }
   };
 
@@ -118,10 +118,10 @@ function Home() {
               type="button"
               onClick={() => handleFilterClick(s.label)}
               className={
-                "flex flex-col items-center justify-center bg-white rounded-lg shadow p-3 transition-all border-2 min-w-0 w-full gap-2" +
-                (isSelected ? " border-blue-500" : " border-transparent")
+                'flex flex-col items-center justify-center bg-white rounded-lg shadow p-3 transition-all border-2 min-w-0 w-full gap-2' +
+                (isSelected ? ' border-blue-500' : ' border-transparent')
               }
-              style={{ outline: "none" }}
+              style={{ outline: 'none' }}
             >
               <div className={`text-xl font-bold leading-none ${s.color}`}>
                 {s.value}
@@ -140,14 +140,14 @@ function Home() {
           <h2 className="text-lg font-semibold text-slate-800">
             {filteredCards.length}
             {filteredCards.length === cards.length
-              ? " Cards"
+              ? ' Cards'
               : ` of ${cards.length} Cards`}
           </h2>
           <Button
             variant="outline"
             size="sm"
             className="text-sm py-2 px-3 rounded-lg"
-            onClick={() => navigate("/add")}
+            onClick={() => navigate('/add')}
           >
             📝 Add Card
           </Button>
@@ -156,8 +156,8 @@ function Home() {
         {filteredCards.length === 0 ? (
           <div className="text-slate-400 text-sm text-center">
             {selectedFilters.length > 0
-              ? "No cards match the selected filters."
-              : "No cards yet."}
+              ? 'No cards match the selected filters.'
+              : 'No cards yet.'}
           </div>
         ) : (
           <ul className="list-none p-0 m-0">
@@ -198,7 +198,7 @@ function Home() {
                     className="ml-1 text-slate-400 hover:text-red-500 p-1 rounded"
                     title="Delete Card"
                     onClick={() => {
-                      if (window.confirm("Delete this card?")) {
+                      if (window.confirm('Delete this card?')) {
                         deleteCard(card.id);
                       }
                     }}
@@ -217,7 +217,7 @@ function Home() {
         <div className="w-full max-w-sm mx-auto p-4">
           <Button
             className="w-full text-base py-3 rounded-xl"
-            onClick={() => navigate("/review")}
+            onClick={() => navigate('/review')}
           >
             📖 Start Review ({stats.due} due)
           </Button>

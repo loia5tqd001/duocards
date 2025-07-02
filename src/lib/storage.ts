@@ -1,6 +1,6 @@
-import { supabase, isSupabaseConfigured, type Database } from "./supabase";
-import type { Card } from "./utils";
-import type { User } from "@supabase/supabase-js";
+import { supabase, isSupabaseConfigured, type Database } from './supabase';
+import type { Card } from './utils';
+import type { User } from '@supabase/supabase-js';
 
 export interface SyncResult {
   success: boolean;
@@ -45,7 +45,7 @@ export class StorageManager {
 
   // Convert Supabase data to local card format
   private supabaseToCard(
-    row: Database["public"]["Tables"]["cards"]["Row"],
+    row: Database['public']['Tables']['cards']['Row']
   ): Card {
     return {
       id: row.id,
@@ -69,7 +69,7 @@ export class StorageManager {
   // Upload local cards to Supabase (when user first logs in)
   async uploadLocalCards(cards: Card[], user: User): Promise<SyncResult> {
     if (!isSupabaseConfigured) {
-      console.warn("Supabase not configured, skipping upload");
+      console.warn('Supabase not configured, skipping upload');
       return { success: true, conflictCount: 0, updatedCount: 0 };
     }
 
@@ -79,7 +79,7 @@ export class StorageManager {
           success: false,
           conflictCount: 0,
           updatedCount: 0,
-          error: "Sync already in progress",
+          error: 'Sync already in progress',
         };
       }
 
@@ -90,11 +90,11 @@ export class StorageManager {
       }
 
       const supabaseCards = cards.map((card) =>
-        this.cardToSupabase(card, user.id),
+        this.cardToSupabase(card, user.id)
       );
 
-      const { error } = await supabase.from("cards").upsert(supabaseCards, {
-        onConflict: "id",
+      const { error } = await supabase.from('cards').upsert(supabaseCards, {
+        onConflict: 'id',
         ignoreDuplicates: false,
       });
 
@@ -106,12 +106,12 @@ export class StorageManager {
         updatedCount: cards.length,
       };
     } catch (error) {
-      console.error("Error uploading local cards:", error);
+      console.error('Error uploading local cards:', error);
       return {
         success: false,
         conflictCount: 0,
         updatedCount: 0,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     } finally {
       this.syncInProgress = false;
@@ -120,19 +120,19 @@ export class StorageManager {
 
   // Download cards from Supabase
   async downloadCards(
-    user: User,
+    user: User
   ): Promise<{ cards: Card[]; success: boolean; error?: string }> {
     if (!isSupabaseConfigured) {
-      console.warn("Supabase not configured, returning empty cards");
+      console.warn('Supabase not configured, returning empty cards');
       return { cards: [], success: true };
     }
 
     try {
       const { data, error } = await supabase
-        .from("cards")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: true });
+        .from('cards')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
 
@@ -140,11 +140,11 @@ export class StorageManager {
 
       return { cards, success: true };
     } catch (error) {
-      console.error("Error downloading cards:", error);
+      console.error('Error downloading cards:', error);
       return {
         cards: [],
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -152,7 +152,7 @@ export class StorageManager {
   // Sync local and remote cards (handles conflicts)
   async syncCards(localCards: Card[], user: User): Promise<SyncResult> {
     if (!isSupabaseConfigured) {
-      console.warn("Supabase not configured, skipping sync");
+      console.warn('Supabase not configured, skipping sync');
       return { success: true, conflictCount: 0, updatedCount: 0 };
     }
 
@@ -162,7 +162,7 @@ export class StorageManager {
           success: false,
           conflictCount: 0,
           updatedCount: 0,
-          error: "Sync already in progress",
+          error: 'Sync already in progress',
         };
       }
 
@@ -171,14 +171,14 @@ export class StorageManager {
       // Download remote cards
       const { cards: remoteCards, success } = await this.downloadCards(user);
       if (!success) {
-        throw new Error("Failed to download remote cards");
+        throw new Error('Failed to download remote cards');
       }
 
       // Create maps for efficient lookup
       const remoteMap = new Map(remoteCards.map((card) => [card.id, card]));
 
-      const toUpdate: Database["public"]["Tables"]["cards"]["Insert"][] = [];
-      const toInsert: Database["public"]["Tables"]["cards"]["Insert"][] = [];
+      const toUpdate: Database['public']['Tables']['cards']['Insert'][] = [];
+      const toInsert: Database['public']['Tables']['cards']['Insert'][] = [];
       let conflictCount = 0;
 
       // Process local cards
@@ -192,7 +192,7 @@ export class StorageManager {
           // Card exists both locally and remotely - check for conflicts
           const localModified = localCard.lastReview || localCard.createdAt;
           const remoteModified = new Date(
-            remoteCard.lastReview || remoteCard.createdAt,
+            remoteCard.lastReview || remoteCard.createdAt
           ).getTime();
 
           if (localModified > remoteModified) {
@@ -208,15 +208,15 @@ export class StorageManager {
 
       // Insert new local cards
       if (toInsert.length > 0) {
-        const { error } = await supabase.from("cards").insert(toInsert);
+        const { error } = await supabase.from('cards').insert(toInsert);
         if (error) throw error;
       }
 
       // Update existing cards where local is newer
       if (toUpdate.length > 0) {
         const { error } = await supabase
-          .from("cards")
-          .upsert(toUpdate, { onConflict: "id" });
+          .from('cards')
+          .upsert(toUpdate, { onConflict: 'id' });
         if (error) throw error;
       }
 
@@ -226,12 +226,12 @@ export class StorageManager {
         updatedCount: toInsert.length + toUpdate.length,
       };
     } catch (error) {
-      console.error("Error syncing cards:", error);
+      console.error('Error syncing cards:', error);
       return {
         success: false,
         conflictCount: 0,
         updatedCount: 0,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     } finally {
       this.syncInProgress = false;
@@ -241,7 +241,7 @@ export class StorageManager {
   // Save single card to Supabase (optimistic updates)
   async saveCard(card: Card, user: User): Promise<boolean> {
     if (!isSupabaseConfigured) {
-      console.warn("Supabase not configured, skipping save");
+      console.warn('Supabase not configured, skipping save');
       return true;
     }
 
@@ -249,13 +249,13 @@ export class StorageManager {
       const supabaseCard = this.cardToSupabase(card, user.id);
 
       const { error } = await supabase
-        .from("cards")
-        .upsert([supabaseCard], { onConflict: "id" });
+        .from('cards')
+        .upsert([supabaseCard], { onConflict: 'id' });
 
       if (error) throw error;
       return true;
     } catch (error) {
-      console.error("Error saving card to Supabase:", error);
+      console.error('Error saving card to Supabase:', error);
       return false;
     }
   }
@@ -263,21 +263,21 @@ export class StorageManager {
   // Delete card from Supabase
   async deleteCard(cardId: string, user: User): Promise<boolean> {
     if (!isSupabaseConfigured) {
-      console.warn("Supabase not configured, skipping delete");
+      console.warn('Supabase not configured, skipping delete');
       return true;
     }
 
     try {
       const { error } = await supabase
-        .from("cards")
+        .from('cards')
         .delete()
-        .eq("id", cardId)
-        .eq("user_id", user.id);
+        .eq('id', cardId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
       return true;
     } catch (error) {
-      console.error("Error deleting card from Supabase:", error);
+      console.error('Error deleting card from Supabase:', error);
       return false;
     }
   }

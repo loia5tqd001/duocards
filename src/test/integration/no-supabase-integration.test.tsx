@@ -3,36 +3,36 @@
  * Tests the end-to-end user experience in local-only mode
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderWithRouter } from "../test-utils";
-import { screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { useCardsStore } from "../../store/cardsStore";
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderWithRouter } from '../test-utils';
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { useCardsStore } from '../../store/cardsStore';
 
 // Import main app components
-import App from "../../App";
-import Home from "../../screens/Home";
+import App from '../../App';
+import Home from '../../screens/Home';
 
 // Mock the supabase configuration as not available
-vi.mock("../../lib/supabase", () => ({
+vi.mock('../../lib/supabase', () => ({
   isSupabaseConfigured: false,
   supabase: {
     auth: {
       signInWithOAuth: vi.fn().mockResolvedValue({
         data: null,
-        error: new Error("Supabase not configured"),
+        error: new Error('Supabase not configured'),
       }),
       signOut: vi.fn().mockResolvedValue({
         data: null,
-        error: new Error("Supabase not configured"),
+        error: new Error('Supabase not configured'),
       }),
       getSession: vi.fn().mockResolvedValue({
         data: { session: null },
-        error: new Error("Supabase not configured"),
+        error: new Error('Supabase not configured'),
       }),
       onAuthStateChange: vi.fn().mockReturnValue({
         data: { subscription: null },
-        error: new Error("Supabase not configured"),
+        error: new Error('Supabase not configured'),
       }),
     },
     from: vi.fn(() => ({
@@ -40,21 +40,21 @@ vi.mock("../../lib/supabase", () => ({
         eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({
           data: null,
-          error: new Error("Supabase not configured"),
+          error: new Error('Supabase not configured'),
         }),
       }),
       insert: vi.fn().mockResolvedValue({
         data: null,
-        error: new Error("Supabase not configured"),
+        error: new Error('Supabase not configured'),
       }),
       upsert: vi.fn().mockResolvedValue({
         data: null,
-        error: new Error("Supabase not configured"),
+        error: new Error('Supabase not configured'),
       }),
       delete: vi.fn().mockReturnValue({
         eq: vi.fn().mockResolvedValue({
           data: null,
-          error: new Error("Supabase not configured"),
+          error: new Error('Supabase not configured'),
         }),
       }),
     })),
@@ -62,7 +62,7 @@ vi.mock("../../lib/supabase", () => ({
 }));
 
 // Mock Cambridge API to prevent network calls
-vi.mock("../../api/cambridge", () => ({
+vi.mock('../../api/cambridge', () => ({
   fetchCambridgeInfo: vi.fn().mockResolvedValue(null),
 }));
 
@@ -72,15 +72,15 @@ global.fetch = vi.fn(() =>
     ok: true,
     json: () =>
       Promise.resolve({
-        word: "test",
-        phonetic: "/test/",
+        word: 'test',
+        phonetic: '/test/',
         examples: [],
         vietnameseTranslations: [],
       }),
-  }),
+  })
 ) as unknown as typeof fetch;
 
-describe("App Integration without Supabase", () => {
+describe('App Integration without Supabase', () => {
   beforeEach(() => {
     // Clear localStorage to ensure clean state
     localStorage.clear();
@@ -92,12 +92,12 @@ describe("App Integration without Supabase", () => {
         ok: true,
         json: () =>
           Promise.resolve({
-            word: "test",
-            phonetic: "/test/",
+            word: 'test',
+            phonetic: '/test/',
             examples: [],
             vietnameseTranslations: [],
           }),
-      }),
+      })
     ) as unknown as typeof fetch;
 
     // Mock Speech Synthesis API
@@ -114,7 +114,7 @@ describe("App Integration without Supabase", () => {
 
     global.SpeechSynthesisUtterance = vi.fn().mockImplementation((text) => ({
       text,
-      lang: "en-US",
+      lang: 'en-US',
       voice: null,
       volume: 1,
       rate: 1,
@@ -129,24 +129,24 @@ describe("App Integration without Supabase", () => {
     }));
   });
 
-  describe("App initialization and stability", () => {
-    it("should load the app without crashing when Supabase is not configured", () => {
+  describe('App initialization and stability', () => {
+    it('should load the app without crashing when Supabase is not configured', () => {
       expect(() => {
         renderWithRouter(<App />);
       }).not.toThrow();
     });
 
-    it("should display the home page by default", () => {
+    it('should display the home page by default', () => {
       renderWithRouter(<App />);
       expect(screen.getAllByText(/cards$/i).length).toBeGreaterThan(0);
     });
 
-    it("should not show authentication-related UI elements", () => {
+    it('should not show authentication-related UI elements', () => {
       renderWithRouter(<Home />);
 
       // Login button should be hidden
       expect(
-        screen.queryByRole("button", { name: /sign in/i }),
+        screen.queryByRole('button', { name: /sign in/i })
       ).not.toBeInTheDocument();
 
       // Sync status should be hidden
@@ -155,16 +155,16 @@ describe("App Integration without Supabase", () => {
     });
   });
 
-  describe("Navigation behavior", () => {
-    it("should redirect from login page to home", () => {
+  describe('Navigation behavior', () => {
+    it('should redirect from login page to home', () => {
       renderWithRouter(<App />, {
-        routerProps: { initialEntries: ["/login"] },
+        routerProps: { initialEntries: ['/login'] },
       });
 
       // Should not show login page content
       expect(screen.queryByText(/welcome to vocards/i)).not.toBeInTheDocument();
       expect(
-        screen.queryByText(/continue with google/i),
+        screen.queryByText(/continue with google/i)
       ).not.toBeInTheDocument();
 
       // Should show home page instead
@@ -173,12 +173,12 @@ describe("App Integration without Supabase", () => {
       });
     });
 
-    it("should allow navigation to other app pages", async () => {
+    it('should allow navigation to other app pages', async () => {
       const user = userEvent.setup();
       renderWithRouter(<App />);
 
       // Navigate to add card page
-      const addButton = screen.getByRole("button", { name: /📝 add card/i });
+      const addButton = screen.getByRole('button', { name: /📝 add card/i });
       await user.click(addButton);
 
       await waitFor(() => {
@@ -187,13 +187,13 @@ describe("App Integration without Supabase", () => {
     });
   });
 
-  describe("Local functionality", () => {
-    it("should allow adding cards locally", async () => {
+  describe('Local functionality', () => {
+    it('should allow adding cards locally', async () => {
       renderWithRouter(<App />);
 
       // Get initial card count
       const initialCardsText = screen.getByText(/\d+ cards?/i).textContent;
-      const initialCount = parseInt(initialCardsText?.match(/\d+/)?.[0] || "0");
+      const initialCount = parseInt(initialCardsText?.match(/\d+/)?.[0] || '0');
 
       // Directly test the store functionality instead of UI integration
       // This tests the core business logic which is what matters for this test
@@ -201,10 +201,10 @@ describe("App Integration without Supabase", () => {
 
       // Add a card directly through the store
       addCard({
-        english: "test",
-        vietnamese: "thử nghiệm",
-        example: "This is a test example.",
-        phonetic: "/test/",
+        english: 'test',
+        vietnamese: 'thử nghiệm',
+        example: 'This is a test example.',
+        phonetic: '/test/',
       });
 
       // Wait for the UI to update with one more card
@@ -212,14 +212,14 @@ describe("App Integration without Supabase", () => {
       await waitFor(
         () => {
           expect(
-            screen.getByText(new RegExp(`${expectedCount} cards?`, "i")),
+            screen.getByText(new RegExp(`${expectedCount} cards?`, 'i'))
           ).toBeInTheDocument();
         },
-        { timeout: 5000 },
+        { timeout: 5000 }
       );
     });
 
-    it("should persist cards in localStorage", async () => {
+    it('should persist cards in localStorage', async () => {
       renderWithRouter(<App />);
 
       // Get initial card count from state
@@ -228,29 +228,29 @@ describe("App Integration without Supabase", () => {
       // Add a card directly through the store to test persistence
       const { addCard } = useCardsStore.getState();
       addCard({
-        english: "persist",
-        vietnamese: "lưu trữ",
-        example: "This persists in localStorage.",
-        phonetic: "/pərˈsɪst/",
+        english: 'persist',
+        vietnamese: 'lưu trữ',
+        example: 'This persists in localStorage.',
+        phonetic: '/pərˈsɪst/',
       });
 
       // Wait for UI to update
       const expectedCount = initialCardsCount + 1;
       await waitFor(() => {
         expect(
-          screen.getByText(new RegExp(`${expectedCount} cards?`, "i")),
+          screen.getByText(new RegExp(`${expectedCount} cards?`, 'i'))
         ).toBeInTheDocument();
       });
 
       // Check if data is stored in localStorage
       await waitFor(() => {
-        const storedData = localStorage.getItem("duocards-storage");
+        const storedData = localStorage.getItem('duocards-storage');
         expect(storedData).toBeTruthy();
         if (storedData) {
           const parsed = JSON.parse(storedData);
           expect(parsed.state.cards.length).toBe(expectedCount);
           const persistCard = parsed.state.cards.find(
-            (card: { english: string }) => card.english === "persist",
+            (card: { english: string }) => card.english === 'persist'
           );
           expect(persistCard).toBeTruthy();
         }
@@ -258,8 +258,8 @@ describe("App Integration without Supabase", () => {
     });
   });
 
-  describe("Review functionality", () => {
-    it("should allow reviewing cards without sync", async () => {
+  describe('Review functionality', () => {
+    it('should allow reviewing cards without sync', async () => {
       const user = userEvent.setup();
       renderWithRouter(<App />);
 
@@ -269,22 +269,22 @@ describe("App Integration without Supabase", () => {
       // Add a card directly through the store
       const { addCard } = useCardsStore.getState();
       addCard({
-        english: "review",
-        vietnamese: "ôn tập",
-        example: "Let me review this lesson.",
-        phonetic: "/rɪˈvjuː/",
+        english: 'review',
+        vietnamese: 'ôn tập',
+        example: 'Let me review this lesson.',
+        phonetic: '/rɪˈvjuː/',
       });
 
       // Wait for the card to be added and show in UI
       const expectedCount = initialCardsCount + 1;
       await waitFor(() => {
         expect(
-          screen.getByText(new RegExp(`${expectedCount} cards?`, "i")),
+          screen.getByText(new RegExp(`${expectedCount} cards?`, 'i'))
         ).toBeInTheDocument();
       });
 
       // Start review
-      const reviewButton = screen.getByRole("button", {
+      const reviewButton = screen.getByRole('button', {
         name: /📖 start review/i,
       });
       await user.click(reviewButton);
@@ -296,23 +296,23 @@ describe("App Integration without Supabase", () => {
     });
   });
 
-  describe("Error handling", () => {
-    it("should not show error messages related to Supabase configuration", () => {
+  describe('Error handling', () => {
+    it('should not show error messages related to Supabase configuration', () => {
       const consoleSpy = vi
-        .spyOn(console, "error")
+        .spyOn(console, 'error')
         .mockImplementation(() => {});
 
       renderWithRouter(<App />);
 
       // Should not log configuration-related errors
       expect(consoleSpy).not.toHaveBeenCalledWith(
-        expect.stringContaining("Supabase"),
+        expect.stringContaining('Supabase')
       );
 
       consoleSpy.mockRestore();
     });
 
-    it("should handle page refreshes gracefully", () => {
+    it('should handle page refreshes gracefully', () => {
       // First render
       const { unmount } = renderWithRouter(<App />);
       unmount();
@@ -326,8 +326,8 @@ describe("App Integration without Supabase", () => {
     });
   });
 
-  describe("Performance in local mode", () => {
-    it("should load quickly without network dependencies", () => {
+  describe('Performance in local mode', () => {
+    it('should load quickly without network dependencies', () => {
       const start = performance.now();
 
       renderWithRouter(<App />);
@@ -340,8 +340,8 @@ describe("App Integration without Supabase", () => {
     });
   });
 
-  describe("User experience", () => {
-    it("should provide a complete local-only experience", async () => {
+  describe('User experience', () => {
+    it('should provide a complete local-only experience', async () => {
       const user = userEvent.setup();
       renderWithRouter(<App />);
 
@@ -349,7 +349,7 @@ describe("App Integration without Supabase", () => {
       expect(screen.getByText(/\d+ cards?/i)).toBeInTheDocument();
 
       // Should be able to add cards
-      const addButton = screen.getByRole("button", { name: /📝 add card/i });
+      const addButton = screen.getByRole('button', { name: /📝 add card/i });
       expect(addButton).toBeEnabled();
 
       // Should be able to navigate
@@ -367,7 +367,7 @@ describe("App Integration without Supabase", () => {
       });
     });
 
-    it("should not mention sync or authentication features", () => {
+    it('should not mention sync or authentication features', () => {
       renderWithRouter(<App />);
 
       // Should not show any sync-related text
@@ -378,8 +378,8 @@ describe("App Integration without Supabase", () => {
     });
   });
 
-  describe("Data integrity", () => {
-    it("should maintain data consistency across navigation", async () => {
+  describe('Data integrity', () => {
+    it('should maintain data consistency across navigation', async () => {
       const user = userEvent.setup();
       renderWithRouter(<App />);
 
@@ -402,12 +402,12 @@ describe("App Integration without Supabase", () => {
       const expectedCount = initialCardsCount + 3;
       await waitFor(() => {
         expect(
-          screen.getByText(new RegExp(`${expectedCount} cards?`, "i")),
+          screen.getByText(new RegExp(`${expectedCount} cards?`, 'i'))
         ).toBeInTheDocument();
       });
 
       // Navigate to add card page and back to test consistency
-      const addButton = screen.getByRole("button", { name: /📝 add card/i });
+      const addButton = screen.getByRole('button', { name: /📝 add card/i });
       await user.click(addButton);
 
       await waitFor(() => {
@@ -420,7 +420,7 @@ describe("App Integration without Supabase", () => {
       // Should still show all cards
       await waitFor(() => {
         expect(
-          screen.getByText(new RegExp(`${expectedCount} cards?`, "i")),
+          screen.getByText(new RegExp(`${expectedCount} cards?`, 'i'))
         ).toBeInTheDocument();
       });
     });

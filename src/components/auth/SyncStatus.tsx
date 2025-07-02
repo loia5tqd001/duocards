@@ -1,7 +1,7 @@
-import { useAuthStore } from "@/store/authStore";
-import { useSyncStatus } from "@/store/cardsStore";
-import { isSupabaseConfigured } from "@/lib/supabase";
-import { Cloud, CloudOff, RotateCw } from "lucide-react";
+import { useAuthStore } from '@/store/authStore';
+import { useSyncStatus } from '@/store/cardsStore';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { Cloud, CloudOff, RotateCw } from 'lucide-react';
 
 export function SyncStatus() {
   const { user } = useAuthStore();
@@ -38,7 +38,7 @@ export function SyncStatus() {
 
   const syncTimeText = lastSyncTime
     ? `Last sync: ${new Date(lastSyncTime).toLocaleTimeString()}`
-    : "Not synced yet";
+    : 'Not synced yet';
 
   return (
     <div

@@ -15,6 +15,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "format": "prettier --write .",
+    "check": "pnpm lint && pnpm format && pnpm test:run",
     "prepare": "husky install"
   },
   "dependencies": {

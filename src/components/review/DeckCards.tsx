@@ -9,15 +9,15 @@ function CardFrontContent({
   speak: (text: string) => void;
 }) {
   return (
-    <div className='review-card w-full'>
-      <div className='text-2xl font-bold mb-2 text-center tracking-tight'>
+    <div className="review-card w-full">
+      <div className="text-2xl font-bold mb-2 text-center tracking-tight">
         {card.english}
       </div>
-      <div className='text-slate-400 text-md mb-2 font-medium flex items-center justify-center'>
+      <div className="text-slate-400 text-md mb-2 font-medium flex items-center justify-center">
         {card.phonetic}
         <VolumeButton
           onClick={() => speak(card.english || '')}
-          ariaLabel='Play word audio'
+          ariaLabel="Play word audio"
           size={18}
           significant={true}
         />
@@ -38,14 +38,19 @@ const CARD_DIMENSIONS = {
   maxHeight: '80dvh',
 };
 
-export default function DeckCards({ dueCards, nextCard, speak, shouldShow }: DeckCardsProps) {
+export default function DeckCards({
+  dueCards,
+  nextCard,
+  speak,
+  shouldShow,
+}: DeckCardsProps) {
   if (dueCards.length <= 1 || !shouldShow) return null;
 
   return (
     <>
       {/* Third card (deepest) */}
       <div
-        className='absolute w-full bg-white rounded-xl deck-card-2'
+        className="absolute w-full bg-white rounded-xl deck-card-2"
         style={{
           ...CARD_DIMENSIONS,
           transform: 'translateY(8px) scale(0.96)',
@@ -54,7 +59,7 @@ export default function DeckCards({ dueCards, nextCard, speak, shouldShow }: Dec
       />
       {/* Second card (middle) */}
       <div
-        className='absolute w-full bg-white rounded-xl deck-card-1 flex flex-col items-center justify-center p-6'
+        className="absolute w-full bg-white rounded-xl deck-card-1 flex flex-col items-center justify-center p-6"
         style={{
           ...CARD_DIMENSIONS,
           transform: 'translateY(4px) scale(0.98)',

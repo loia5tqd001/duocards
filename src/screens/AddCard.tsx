@@ -7,7 +7,13 @@ import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import VolumeButton from '@/components/ui/VolumeButton';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCards, useCardsActions } from '../store/cardsStore';
-import { useFormFields, useFormState, useCambridgeState, useFormActions, type CambridgeInfo } from '../store/formStore';
+import {
+  useFormFields,
+  useFormState,
+  useCambridgeState,
+  useFormActions,
+  type CambridgeInfo,
+} from '../store/formStore';
 import { useUIActions } from '../store/uiStore';
 
 // CambridgeInfo interface is now imported from formStore
@@ -57,7 +63,15 @@ export default function AddOrEditCard() {
       }
     }
     setCardLoaded(true);
-  }, [id, cards, populateFromCard, setEditing, setCardLoaded, isEditing, resetForm]);
+  }, [
+    id,
+    cards,
+    populateFromCard,
+    setEditing,
+    setCardLoaded,
+    isEditing,
+    resetForm,
+  ]);
 
   // Clear form when English input is empty (only in add mode)
   const clearFormData = useCallback(() => {
@@ -165,7 +179,7 @@ export default function AddOrEditCard() {
     if (!trimmedEnglish || !trimmedVietnamese) return;
 
     setSubmitting(true);
-    
+
     try {
       if (isEditing && editingCardId) {
         // Update existing card
@@ -201,7 +215,22 @@ export default function AddOrEditCard() {
     } finally {
       setSubmitting(false);
     }
-  }, [english, vietnamese, example, phonetic, isEditing, editingCardId, cards, updateCard, addCard, showNotification, navigate, resetForm, info, setSubmitting]);
+  }, [
+    english,
+    vietnamese,
+    example,
+    phonetic,
+    isEditing,
+    editingCardId,
+    cards,
+    updateCard,
+    addCard,
+    showNotification,
+    navigate,
+    resetForm,
+    info,
+    setSubmitting,
+  ]);
 
   // Navigation handlers
   const handleNavigateHome = useCallback(() => {
@@ -212,45 +241,44 @@ export default function AddOrEditCard() {
     navigate('/review');
   }, [navigate]);
 
-
   return (
     <PageContainer
       title={isEditing ? '✏️ Edit Card' : '📝 Add New Card'}
       leftButton={
         <Button
-          variant='outline'
-          size='icon'
-          className='rounded-lg w-10 h-10 min-w-0'
+          variant="outline"
+          size="icon"
+          className="rounded-lg w-10 h-10 min-w-0"
           onClick={handleNavigateHome}
-          aria-label='Back to Home'
+          aria-label="Back to Home"
         >
-          <span className='text-xl'>🏠</span>
+          <span className="text-xl">🏠</span>
         </Button>
       }
       rightButton={
         <Button
-          variant='outline'
-          size='icon'
-          className='rounded-lg w-10 h-10 min-w-0'
+          variant="outline"
+          size="icon"
+          className="rounded-lg w-10 h-10 min-w-0"
           onClick={handleNavigateReview}
-          aria-label='Go to Review'
+          aria-label="Go to Review"
         >
-          <span className='text-xl'>📖</span>
+          <span className="text-xl">📖</span>
         </Button>
       }
     >
-      <div className='flex flex-col gap-4'>
-        <div className='pt-1'>
-          <label htmlFor='english' className='font-bold text-sm'>
+      <div className="flex flex-col gap-4">
+        <div className="pt-1">
+          <label htmlFor="english" className="font-bold text-sm">
             English
           </label>
-          <div className='relative flex items-center'>
+          <div className="relative flex items-center">
             <input
-              id='english'
-              type='text'
+              id="english"
+              type="text"
               value={english}
               onChange={handleEnglishChange}
-              placeholder='Enter English word'
+              placeholder="Enter English word"
               className={`w-full p-3 rounded-lg border text-base focus:outline-none pr-10 ${
                 english ? 'border-blue-500' : 'border-slate-200'
               }`}
@@ -260,17 +288,17 @@ export default function AddOrEditCard() {
             />
             {!isEditing && english && (
               <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500"
                 onClick={() => {
                   setField('english', '');
                   setCambridgeInfo(undefined);
                   englishInputRef.current?.focus();
                 }}
-                aria-label='Clear English input'
-                title='Clear English input'
+                aria-label="Clear English input"
+                title="Clear English input"
                 tabIndex={-1}
               >
                 <FaTimes size={14} />
@@ -279,41 +307,41 @@ export default function AddOrEditCard() {
           </div>
           {isEditing
             ? phonetic && (
-                <div className='font-semibold text-lg mb-1 mt-1 flex items-center gap-2'>
-                  <span className='text-slate-400 text-sm'>{phonetic}</span>
+                <div className="font-semibold text-lg mb-1 mt-1 flex items-center gap-2">
+                  <span className="text-slate-400 text-sm">{phonetic}</span>
                   <VolumeButton
                     onClick={() => speak(english)}
-                    ariaLabel='Play word audio'
+                    ariaLabel="Play word audio"
                     size={18}
                     significant={true}
                   />
                 </div>
               )
             : info && (
-                <div className='font-semibold text-lg mb-1 mt-1 flex items-center gap-2'>
-                  <span className='text-slate-400 text-sm'>
+                <div className="font-semibold text-lg mb-1 mt-1 flex items-center gap-2">
+                  <span className="text-slate-400 text-sm">
                     {info.phonetic}
                   </span>
                   <VolumeButton
                     onClick={() => speak(info.word)}
-                    ariaLabel='Play word audio'
+                    ariaLabel="Play word audio"
                     size={18}
                     significant={true}
                   />
                 </div>
               )}
         </div>
-        <div className='pt-1'>
-          <label htmlFor='vietnamese' className='font-bold text-sm'>
+        <div className="pt-1">
+          <label htmlFor="vietnamese" className="font-bold text-sm">
             Vietnamese
           </label>
-          <div className='relative flex items-center'>
+          <div className="relative flex items-center">
             <input
-              id='vietnamese'
-              type='text'
+              id="vietnamese"
+              type="text"
               value={vietnamese}
               onChange={handleVietnameseChange}
-              placeholder='Vietnamese translation'
+              placeholder="Vietnamese translation"
               className={`w-full p-3 rounded-lg border text-base focus:outline-none pr-10 ${
                 vietnamese ? 'border-blue-500' : 'border-slate-200'
               }`}
@@ -321,16 +349,16 @@ export default function AddOrEditCard() {
             />
             {vietnamese && (
               <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500"
                 onClick={() => {
                   setField('vietnamese', '');
                   vietnameseInputRef.current?.focus();
                 }}
-                aria-label='Clear Vietnamese input'
-                title='Clear Vietnamese input'
+                aria-label="Clear Vietnamese input"
+                title="Clear Vietnamese input"
                 tabIndex={-1}
               >
                 <FaTimes size={14} />
@@ -342,11 +370,11 @@ export default function AddOrEditCard() {
             info &&
             Array.isArray(info.vietnameseTranslations) &&
             info.vietnameseTranslations.length > 0 && (
-              <div className='flex flex-wrap gap-2 mt-2'>
+              <div className="flex flex-wrap gap-2 mt-2">
                 {info.vietnameseTranslations.map((vi: string, i: number) => (
                   <button
                     key={i}
-                    type='button'
+                    type="button"
                     className={`px-3 py-1 rounded-full border text-xs transition-colors cursor-pointer
                     ${
                       vietnamese === vi
@@ -362,16 +390,16 @@ export default function AddOrEditCard() {
               </div>
             )}
         </div>
-        <div className='pt-1'>
-          <label htmlFor='example' className='font-bold text-sm'>
+        <div className="pt-1">
+          <label htmlFor="example" className="font-bold text-sm">
             Example (optional)
           </label>
-          <div className='relative flex items-center'>
+          <div className="relative flex items-center">
             <AutoGrowTextarea
-              id='example'
+              id="example"
               value={example}
               onChange={handleExampleChange}
-              placeholder='Example sentence (English)'
+              placeholder="Example sentence (English)"
               minRows={1}
               maxRows={3}
               className={`resize-none ${
@@ -381,16 +409,16 @@ export default function AddOrEditCard() {
             />
             {example && (
               <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                className='absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500'
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 inset-y-0 my-auto w-6 h-6 p-0 text-slate-300 hover:text-slate-500"
                 onClick={() => {
                   setField('example', '');
                   exampleTextareaRef.current?.focus();
                 }}
-                aria-label='Clear Example input'
-                title='Clear Example input'
+                aria-label="Clear Example input"
+                title="Clear Example input"
                 tabIndex={-1}
               >
                 <FaTimes size={14} />
@@ -402,11 +430,11 @@ export default function AddOrEditCard() {
             info &&
             Array.isArray(info.examples) &&
             info.examples.length > 0 && (
-              <div className='flex flex-wrap gap-2 mt-2'>
+              <div className="flex flex-wrap gap-2 mt-2">
                 {info.examples.map((ex: string, i: number) => (
                   <button
                     key={i}
-                    type='button'
+                    type="button"
                     className={`px-3 py-1 rounded-full border text-xs transition-colors cursor-pointer
                     ${
                       example === ex
@@ -424,26 +452,30 @@ export default function AddOrEditCard() {
         </div>
 
         {/* Padding to prevent content from being hidden behind sticky button */}
-        <div className='pb-24'>
+        <div className="pb-24">
           {/* Notifications now handled by UI store */}
         </div>
       </div>
 
       {/* Fixed bottom button (no longer sticky to keyboard) */}
       <div
-        className='fixed left-0 right-0 bg-white border-t border-slate-200 z-50'
+        className="fixed left-0 right-0 bg-white border-t border-slate-200 z-50"
         style={{
           bottom: 'env(safe-area-inset-bottom)',
           paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
         }}
       >
-        <div className='w-full max-w-sm mx-auto p-4'>
+        <div className="w-full max-w-sm mx-auto p-4">
           <Button
-            className='w-full text-base py-3 rounded-xl'
+            className="w-full text-base py-3 rounded-xl"
             onClick={handleAddOrEdit}
             disabled={!english || !vietnamese || isFetching || isSubmitting}
           >
-            {isFetching || isSubmitting ? 'Loading...' : isEditing ? 'Save Changes' : 'Add Card'}
+            {isFetching || isSubmitting
+              ? 'Loading...'
+              : isEditing
+                ? 'Save Changes'
+                : 'Add Card'}
           </Button>
         </div>
       </div>

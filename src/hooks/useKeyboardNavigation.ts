@@ -19,9 +19,10 @@ export function useKeyboardNavigation({
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       // Ignore if any modifier key is held
-      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || isDismissing) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || isDismissing)
+        return;
       if (!card) return;
-      
+
       if (!flipped) {
         // On front: any key flips
         onFlip();
@@ -34,7 +35,7 @@ export function useKeyboardNavigation({
         }
       }
     }
-    
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [flipped, card, isDismissing, onFlip, onReview]);

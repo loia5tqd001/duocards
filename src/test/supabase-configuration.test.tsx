@@ -3,20 +3,20 @@
  * Tests that the app gracefully handles missing environment variables
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { renderWithRouter } from "./test-utils";
-import { screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { renderWithRouter } from './test-utils';
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 // Components to test
-import { LoginButton } from "../components/auth/LoginButton";
-import { SyncStatus } from "../components/auth/SyncStatus";
-import Login from "../screens/Login";
-import Home from "../screens/Home";
+import { LoginButton } from '../components/auth/LoginButton';
+import { SyncStatus } from '../components/auth/SyncStatus';
+import Login from '../screens/Login';
+import Home from '../screens/Home';
 
 // Mock the supabase module to control isSupabaseConfigured
-vi.mock("../lib/supabase", async () => {
-  const actual = await vi.importActual("../lib/supabase");
+vi.mock('../lib/supabase', async () => {
+  const actual = await vi.importActual('../lib/supabase');
   return {
     ...actual,
     isSupabaseConfigured: true, // Will be overridden in tests
@@ -24,156 +24,156 @@ vi.mock("../lib/supabase", async () => {
 });
 
 // Import after mocking to get the mocked version
-import * as supabaseModule from "../lib/supabase";
+import * as supabaseModule from '../lib/supabase';
 
 // Mock navigation
 const mockNavigate = vi.fn();
-vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual("react-router-dom");
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
     useNavigate: () => mockNavigate,
   };
 });
 
-describe("Supabase Configuration Handling", () => {
+describe('Supabase Configuration Handling', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  describe("When Supabase is configured", () => {
+  describe('When Supabase is configured', () => {
     beforeEach(() => {
       vi.mocked(supabaseModule).isSupabaseConfigured = true;
     });
 
-    it("should show LoginButton when user is not logged in", () => {
+    it('should show LoginButton when user is not logged in', () => {
       renderWithRouter(<LoginButton />);
       expect(
-        screen.getByRole("link", { name: /sign in/i }),
+        screen.getByRole('link', { name: /sign in/i })
       ).toBeInTheDocument();
     });
 
-    it("should show SyncStatus component", () => {
+    it('should show SyncStatus component', () => {
       renderWithRouter(<SyncStatus />);
       expect(screen.getByText(/local only/i)).toBeInTheDocument();
     });
 
-    it("should not redirect Login page to home", () => {
+    it('should not redirect Login page to home', () => {
       renderWithRouter(<Login />);
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it("should allow access to login page", () => {
+    it('should allow access to login page', () => {
       renderWithRouter(<Login />);
       expect(screen.getByText(/welcome to vocards/i)).toBeInTheDocument();
       expect(screen.getByText(/continue with google/i)).toBeInTheDocument();
     });
   });
 
-  describe("When Supabase is NOT configured", () => {
+  describe('When Supabase is NOT configured', () => {
     beforeEach(() => {
       vi.mocked(supabaseModule).isSupabaseConfigured = false;
     });
 
-    describe("LoginButton component", () => {
-      it("should hide the LoginButton completely", () => {
+    describe('LoginButton component', () => {
+      it('should hide the LoginButton completely', () => {
         renderWithRouter(<LoginButton />);
         expect(
-          screen.queryByRole("link", { name: /sign in/i }),
+          screen.queryByRole('link', { name: /sign in/i })
         ).not.toBeInTheDocument();
         expect(
-          screen.queryByRole("button", { name: /sign out/i }),
+          screen.queryByRole('button', { name: /sign out/i })
         ).not.toBeInTheDocument();
       });
 
-      it("should return null and not render anything", () => {
+      it('should return null and not render anything', () => {
         const { container } = renderWithRouter(<LoginButton />);
         expect(container.firstChild).toBeNull();
       });
     });
 
-    describe("SyncStatus component", () => {
-      it("should hide the SyncStatus component completely", () => {
+    describe('SyncStatus component', () => {
+      it('should hide the SyncStatus component completely', () => {
         renderWithRouter(<SyncStatus />);
         expect(screen.queryByText(/local only/i)).not.toBeInTheDocument();
         expect(screen.queryByText(/synced/i)).not.toBeInTheDocument();
         expect(screen.queryByText(/syncing/i)).not.toBeInTheDocument();
       });
 
-      it("should return null and not render anything", () => {
+      it('should return null and not render anything', () => {
         const { container } = renderWithRouter(<SyncStatus />);
         expect(container.firstChild).toBeNull();
       });
     });
 
-    describe("Login page redirect", () => {
-      it("should redirect to home page when accessing login", () => {
+    describe('Login page redirect', () => {
+      it('should redirect to home page when accessing login', () => {
         renderWithRouter(<Login />);
-        expect(mockNavigate).toHaveBeenCalledWith("/");
+        expect(mockNavigate).toHaveBeenCalledWith('/');
       });
 
-      it("should not show login page content", () => {
+      it('should not show login page content', () => {
         renderWithRouter(<Login />);
         expect(
-          screen.queryByText(/welcome to vocards/i),
+          screen.queryByText(/welcome to vocards/i)
         ).not.toBeInTheDocument();
         expect(
-          screen.queryByText(/continue with google/i),
+          screen.queryByText(/continue with google/i)
         ).not.toBeInTheDocument();
       });
     });
 
-    describe("App stability", () => {
-      it("should not crash when rendering components without Supabase config", () => {
+    describe('App stability', () => {
+      it('should not crash when rendering components without Supabase config', () => {
         expect(() => {
           renderWithRouter(
             <div>
               <LoginButton />
               <SyncStatus />
-            </div>,
+            </div>
           );
         }).not.toThrow();
       });
 
-      it("should not crash Home page without Supabase config", () => {
+      it('should not crash Home page without Supabase config', () => {
         expect(() => {
           renderWithRouter(<Home />);
         }).not.toThrow();
       });
 
-      it("should still show home page content without sync features", () => {
+      it('should still show home page content without sync features', () => {
         renderWithRouter(<Home />);
         // Home page should still be functional
         expect(screen.getAllByText(/cards$/i).length).toBeGreaterThan(0);
       });
     });
 
-    describe("Navigation and user interaction", () => {
-      it("should handle clicking non-existent login button gracefully", async () => {
+    describe('Navigation and user interaction', () => {
+      it('should handle clicking non-existent login button gracefully', async () => {
         userEvent.setup();
         renderWithRouter(<LoginButton />);
 
         // Should not find login button to click
         expect(
-          screen.queryByRole("link", { name: /sign in/i }),
+          screen.queryByRole('link', { name: /sign in/i })
         ).not.toBeInTheDocument();
 
         // App should remain stable
         expect(document.body).toBeInTheDocument();
       });
 
-      it("should handle navigation to login route and redirect to home", () => {
+      it('should handle navigation to login route and redirect to home', () => {
         renderWithRouter(<Login />, {
-          routerProps: { initialEntries: ["/login"] },
+          routerProps: { initialEntries: ['/login'] },
         });
 
-        expect(mockNavigate).toHaveBeenCalledWith("/");
+        expect(mockNavigate).toHaveBeenCalledWith('/');
       });
     });
   });
 
-  describe("Environment variable simulation", () => {
-    it("should handle undefined VITE_SUPABASE_URL", () => {
+  describe('Environment variable simulation', () => {
+    it('should handle undefined VITE_SUPABASE_URL', () => {
       // This simulates the condition where env vars are missing
       vi.mocked(supabaseModule).isSupabaseConfigured = false;
 
@@ -183,12 +183,12 @@ describe("Supabase Configuration Handling", () => {
             <LoginButton />
             <SyncStatus />
             <Login />
-          </div>,
+          </div>
         );
       }).not.toThrow();
     });
 
-    it("should handle empty VITE_SUPABASE_URL", () => {
+    it('should handle empty VITE_SUPABASE_URL', () => {
       // This simulates empty env vars
       vi.mocked(supabaseModule).isSupabaseConfigured = false;
 
@@ -197,17 +197,17 @@ describe("Supabase Configuration Handling", () => {
     });
   });
 
-  describe("Error boundaries and error handling", () => {
-    it("should not trigger error boundaries when Supabase is not configured", () => {
+  describe('Error boundaries and error handling', () => {
+    it('should not trigger error boundaries when Supabase is not configured', () => {
       const consoleSpy = vi
-        .spyOn(console, "error")
+        .spyOn(console, 'error')
         .mockImplementation(() => {});
 
       renderWithRouter(
         <div>
           <LoginButton />
           <SyncStatus />
-        </div>,
+        </div>
       );
 
       // Should not log any errors
@@ -216,14 +216,14 @@ describe("Supabase Configuration Handling", () => {
       consoleSpy.mockRestore();
     });
 
-    it("should handle multiple component renders without Supabase config", () => {
+    it('should handle multiple component renders without Supabase config', () => {
       expect(() => {
         for (let i = 0; i < 5; i++) {
           const { unmount } = renderWithRouter(
             <div>
               <LoginButton />
               <SyncStatus />
-            </div>,
+            </div>
           );
           unmount();
         }
@@ -231,8 +231,8 @@ describe("Supabase Configuration Handling", () => {
     });
   });
 
-  describe("Authentication store behavior", () => {
-    it("should handle auth store initialization without Supabase config", async () => {
+  describe('Authentication store behavior', () => {
+    it('should handle auth store initialization without Supabase config', async () => {
       vi.mocked(supabaseModule).isSupabaseConfigured = false;
 
       renderWithRouter(<Home />);
@@ -244,8 +244,8 @@ describe("Supabase Configuration Handling", () => {
     });
   });
 
-  describe("Accessibility", () => {
-    it("should maintain accessibility when components are hidden", () => {
+  describe('Accessibility', () => {
+    it('should maintain accessibility when components are hidden', () => {
       vi.mocked(supabaseModule).isSupabaseConfigured = false;
 
       renderWithRouter(
@@ -254,45 +254,45 @@ describe("Supabase Configuration Handling", () => {
           <LoginButton />
           <SyncStatus />
           <main>Content</main>
-        </div>,
+        </div>
       );
 
       // Should still have proper document structure
-      expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
-      expect(screen.getByRole("main")).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+      expect(screen.getByRole('main')).toBeInTheDocument();
     });
   });
 });
 
-describe("Supabase Client Behavior", () => {
-  describe("When isSupabaseConfigured is false", () => {
+describe('Supabase Client Behavior', () => {
+  describe('When isSupabaseConfigured is false', () => {
     beforeEach(() => {
       vi.mocked(supabaseModule).isSupabaseConfigured = false;
     });
 
-    it("should export a mock supabase client that does not throw", async () => {
+    it('should export a mock supabase client that does not throw', async () => {
       // Import the mocked supabase client
-      const { supabase } = await import("../lib/supabase");
+      const { supabase } = await import('../lib/supabase');
 
       expect(() => {
         // These operations should not throw errors
         supabase.auth.signInWithOAuth({
-          provider: "google",
+          provider: 'google',
           options: {
             redirectTo: `${window.location.origin}/auth/callback`,
           },
         });
         supabase.auth.signOut();
-        supabase.from("cards").select("*");
+        supabase.from('cards').select('*');
       }).not.toThrow();
     });
 
-    it("should handle auth operations gracefully", async () => {
-      const { supabase } = await import("../lib/supabase");
+    it('should handle auth operations gracefully', async () => {
+      const { supabase } = await import('../lib/supabase');
 
       // These should not throw but return error responses
       const googleSignIn = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider: 'google',
       });
       expect(googleSignIn.error).toBeDefined();
 
@@ -303,11 +303,11 @@ describe("Supabase Client Behavior", () => {
       expect(getSession.error).toBeDefined();
     });
 
-    it("should handle database operations gracefully", async () => {
-      const { supabase } = await import("../lib/supabase");
+    it('should handle database operations gracefully', async () => {
+      const { supabase } = await import('../lib/supabase');
 
       // Database operations should return errors instead of throwing
-      const select = await supabase.from("cards").select();
+      const select = await supabase.from('cards').select();
       expect(select.error).toBeDefined();
       expect(select.data).toBeNull();
     });

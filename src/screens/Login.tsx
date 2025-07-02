@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useAuthStore } from "@/store/authStore";
-import { isSupabaseConfigured } from "@/lib/supabase";
-import { Loader2 } from "lucide-react";
+} from '@/components/ui/card';
+import { useAuthStore } from '@/store/authStore';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { Loader2 } from 'lucide-react';
 
 const GoogleIcon = () => (
   <svg
@@ -58,13 +58,13 @@ export default function Login() {
 
   // Redirect to home if Supabase is not configured
   if (!isSupabaseConfigured) {
-    navigate("/");
+    navigate('/');
     return null;
   }
 
   // Redirect if already logged in
   if (user && !isLoading) {
-    navigate("/");
+    navigate('/');
     return null;
   }
 
@@ -73,7 +73,7 @@ export default function Login() {
       setIsGoogleLoading(true);
       await signInWithGoogle();
     } catch (error) {
-      console.error("Google sign in failed:", error);
+      console.error('Google sign in failed:', error);
     } finally {
       setIsGoogleLoading(false);
     }
@@ -84,14 +84,14 @@ export default function Login() {
       setIsFacebookLoading(true);
       await signInWithFacebook();
     } catch (error) {
-      console.error("Facebook sign in failed:", error);
+      console.error('Facebook sign in failed:', error);
     } finally {
       setIsFacebookLoading(false);
     }
   };
 
   const handleBackToHome = () => {
-    navigate("/");
+    navigate('/');
   };
 
   if (isLoading) {

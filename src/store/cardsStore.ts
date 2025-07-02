@@ -1,15 +1,15 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 import {
   subscribeWithSelector,
   persist,
   createJSONStorage,
-} from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
-import { useShallow } from "zustand/react/shallow";
-import type { Card, CardGrade, CardStatus } from "../lib/utils";
-import { scheduleNext, uuidv4 } from "../lib/utils";
-import { StorageManager } from "../lib/storage";
-import { useAuthStore } from "./authStore";
+} from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+import { useShallow } from 'zustand/react/shallow';
+import type { Card, CardGrade, CardStatus } from '../lib/utils';
+import { scheduleNext, uuidv4 } from '../lib/utils';
+import { StorageManager } from '../lib/storage';
+import { useAuthStore } from './authStore';
 
 interface CardsState {
   cards: Card[];
@@ -31,15 +31,15 @@ interface CardsState {
   addCard: (
     card: Omit<
       Card,
-      | "id"
-      | "createdAt"
-      | "status"
-      | "interval"
-      | "stepIndex"
-      | "nextReview"
-      | "lapses"
-      | "reps"
-    >,
+      | 'id'
+      | 'createdAt'
+      | 'status'
+      | 'interval'
+      | 'stepIndex'
+      | 'nextReview'
+      | 'lapses'
+      | 'reps'
+    >
   ) => void;
   updateCard: (card: Card) => void;
   deleteCard: (id: string) => void;
@@ -59,9 +59,9 @@ function computeStats(cards: Card[], sessionQueue: string[]) {
   const sessionQueueSet = new Set(sessionQueue);
 
   return {
-    new: cards.filter((c) => c.status === "new").length,
-    learning: cards.filter((c) => c.status === "learning").length,
-    learned: cards.filter((c) => c.status === "learned").length,
+    new: cards.filter((c) => c.status === 'new').length,
+    learning: cards.filter((c) => c.status === 'learning').length,
+    learned: cards.filter((c) => c.status === 'learned').length,
     due: cards.filter((c) => c.nextReview <= now && !sessionQueueSet.has(c.id))
       .length,
     total: cards.length,
@@ -78,11 +78,11 @@ function computeDueCards(cards: Card[], sessionQueue: string[]): Card[] {
       // Priority order: learning > new > learned
       const priority = (card: Card) => {
         switch (card.status) {
-          case "learning":
+          case 'learning':
             return 0;
-          case "new":
+          case 'new':
             return 1;
-          case "learned":
+          case 'learned':
             return 2;
           default:
             return 3;
@@ -113,7 +113,7 @@ export const useCardsStore = create<CardsState>()(
             ...cardData,
             id: uuidv4(),
             createdAt: Date.now(),
-            status: "new",
+            status: 'new',
             interval: 0,
             stepIndex: 0,
             nextReview: Date.now(), // due immediately
@@ -250,7 +250,7 @@ export const useCardsStore = create<CardsState>()(
               });
             }
           } catch (error) {
-            console.error("Sync failed:", error);
+            console.error('Sync failed:', error);
           } finally {
             set((state) => {
               state.isSyncing = false;
@@ -277,7 +277,7 @@ export const useCardsStore = create<CardsState>()(
               });
             }
           } catch (error) {
-            console.error("Load from Supabase failed:", error);
+            console.error('Load from Supabase failed:', error);
           } finally {
             set((state) => {
               state.isSyncing = false;
@@ -300,7 +300,7 @@ export const useCardsStore = create<CardsState>()(
             const storageManager = StorageManager.getInstance();
             const result = await storageManager.uploadLocalCards(
               state.cards,
-              user,
+              user
             );
 
             if (result.success) {
@@ -309,17 +309,17 @@ export const useCardsStore = create<CardsState>()(
               });
             }
           } catch (error) {
-            console.error("Upload to Supabase failed:", error);
+            console.error('Upload to Supabase failed:', error);
           } finally {
             set((state) => {
               state.isSyncing = false;
             });
           }
         },
-      })),
+      }))
     ),
     {
-      name: "duocards-storage",
+      name: 'duocards-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         cards: state.cards,
@@ -335,8 +335,8 @@ export const useCardsStore = create<CardsState>()(
           state.dueCards = computeDueCards(state.cards, state.sessionQueue);
         }
       },
-    },
-  ),
+    }
+  )
 );
 
 // Simple selectors that just return state properties
@@ -359,7 +359,7 @@ export const useCardsActions = () =>
       loadFromSupabase: state.loadFromSupabase,
       uploadToSupabase: state.uploadToSupabase,
       setCards: state.setCards,
-    })),
+    }))
   );
 
 // Sync status selectors
@@ -368,7 +368,7 @@ export const useSyncStatus = () =>
     useShallow((state) => ({
       isSyncing: state.isSyncing,
       lastSyncTime: state.lastSyncTime,
-    })),
+    }))
   );
 
 // Filtered cards selector - this needs to be computed on demand to avoid storing all possible filter combinations
@@ -395,7 +395,7 @@ export const useFilteredCards = (filters: string[]): Card[] => {
         if (!aIsDue && bIsDue) return 1;
 
         // If both are due or both are not due, sort by status priority
-        const statusOrder: CardStatus[] = ["learning", "new", "learned"];
+        const statusOrder: CardStatus[] = ['learning', 'new', 'learned'];
         const statusDiff =
           statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
         if (statusDiff !== 0) return statusDiff;
@@ -403,6 +403,6 @@ export const useFilteredCards = (filters: string[]): Card[] => {
         // Within same status, sort by nextReview time
         return a.nextReview - b.nextReview;
       });
-    }),
+    })
   );
 };

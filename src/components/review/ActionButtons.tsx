@@ -8,9 +8,13 @@ interface ActionButtonsProps {
   onReview: (grade: CardGrade) => void;
 }
 
-export default function ActionButtons({ flipped, isDismissing, onReview }: ActionButtonsProps) {
+export default function ActionButtons({
+  flipped,
+  isDismissing,
+  onReview,
+}: ActionButtonsProps) {
   const isDisabled = !flipped || isDismissing;
-  
+
   return (
     <div className={`w-full flex gap-4 mb-2 ${!flipped ? 'opacity-0' : ''}`}>
       <Button
@@ -21,7 +25,7 @@ export default function ActionButtons({ flipped, isDismissing, onReview }: Actio
         disabled={isDisabled}
       >
         <FaArrowLeft size={20} />
-        <div className='flex flex-col items-center'>
+        <div className="flex flex-col items-center">
           <span>Incorrect</span>
         </div>
       </Button>
@@ -32,7 +36,7 @@ export default function ActionButtons({ flipped, isDismissing, onReview }: Actio
         onClick={() => onReview('correct')}
         disabled={isDisabled}
       >
-        <div className='flex flex-col items-center'>
+        <div className="flex flex-col items-center">
           <span>Correct</span>
         </div>
         <FaArrowRight size={20} />

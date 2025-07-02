@@ -23,14 +23,12 @@ I attached the images of
 ## Cursor Rule (Workflow & Best Practices)
 
 1. **Branching & PRs**
-
    - Each feature, screen, or major refactor must be developed in a separate branch.
    - Branch naming: use `feature/<feature-name>`, `fix/<bug-description>`, or `refactor/<scope>`.
    - Open a Pull Request (PR) for each feature/bugfix. Keep PRs focused and small.
    - Reference the relevant TODO.md item(s) in the PR description.
 
 2. **Commit Messages**
-
    - Use clear, conventional commit messages:
      - `feat: <feature>` for new features
      - `fix: <bug>` for bug fixes
@@ -41,14 +39,12 @@ I attached the images of
    - Example: `feat: add mobile-first Home screen layout`
 
 3. **Code Review & Merging**
-
    - All PRs must be reviewed before merging (self-review if solo, otherwise peer review).
    - Address all review comments before merging.
    - Squash and merge PRs to keep history clean.
    - After merging, update TODO.md to reflect completed tasks.
 
 4. **Component & File Structure**
-
    - Keep components modular and reusable.
    - Use a `components/` directory for shared UI elements.
    - Use a `screens/` directory for main app screens (Home, AddCard, ReviewCard, etc.).
@@ -56,13 +52,11 @@ I attached the images of
    - Use a `utils/` directory for utility functions (e.g., spaced repetition logic, API calls).
 
 5. **Mobile-First & Responsive Design**
-
    - All UI/UX must be designed mobile-first, then enhanced for desktop.
    - Use CSS media queries or utility classes for responsiveness.
    - Test all features on mobile emulators/devices before PR review.
 
 6. **Testing & Linting**
-
    - Run linting (`npm run lint` or `pnpm lint`) before pushing.
    - Add tests for critical logic (spaced repetition, API integration, etc.) if possible.
 

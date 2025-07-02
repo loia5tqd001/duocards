@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/store/authStore";
-import { useSyncStatus } from "@/store/cardsStore";
-import { isSupabaseConfigured } from "@/lib/supabase";
-import { Link } from "react-router-dom";
+import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/authStore';
+import { useSyncStatus } from '@/store/cardsStore';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { Link } from 'react-router-dom';
 
 export function LoginButton() {
   const { user, isLoading, signOut } = useAuthStore();
@@ -26,7 +26,7 @@ export function LoginButton() {
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
           </div>
         )}
-        <span className={isSyncing ? "opacity-0" : ""}>Sign Out</span>
+        <span className={isSyncing ? 'opacity-0' : ''}>Sign Out</span>
       </Button>
     );
   }

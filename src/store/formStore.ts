@@ -17,23 +17,33 @@ interface FormState {
   vietnamese: string;
   example: string;
   phonetic: string;
-  
+
   // Form state
   isEditing: boolean;
   editingCardId?: string;
   cardLoaded: boolean;
-  
+
   // Cambridge API state
   cambridgeInfo?: CambridgeInfo;
   isFetchingCambridge: boolean;
-  
+
   // Form status
   isSubmitting: boolean;
   hasUnsavedChanges: boolean;
-  
+
   // Actions
-  setField: (field: keyof Pick<FormState, 'english' | 'vietnamese' | 'example' | 'phonetic'>, value: string) => void;
-  setFields: (fields: Partial<Pick<FormState, 'english' | 'vietnamese' | 'example' | 'phonetic'>>) => void;
+  setField: (
+    field: keyof Pick<
+      FormState,
+      'english' | 'vietnamese' | 'example' | 'phonetic'
+    >,
+    value: string
+  ) => void;
+  setFields: (
+    fields: Partial<
+      Pick<FormState, 'english' | 'vietnamese' | 'example' | 'phonetic'>
+    >
+  ) => void;
   setCambridgeInfo: (info?: CambridgeInfo) => void;
   setFetchingCambridge: (fetching: boolean) => void;
   setEditing: (editing: boolean, cardId?: string) => void;
@@ -41,51 +51,60 @@ interface FormState {
   setSubmitting: (submitting: boolean) => void;
   setUnsavedChanges: (hasChanges: boolean) => void;
   resetForm: () => void;
-  populateFromCard: (card: { english: string; vietnamese: string; example?: string; phonetic?: string }) => void;
+  populateFromCard: (card: {
+    english: string;
+    vietnamese: string;
+    example?: string;
+    phonetic?: string;
+  }) => void;
 }
 
 // Selectors
-export const useFormFields = () => useFormStore(
-  useShallow((state) => ({
-    english: state.english,
-    vietnamese: state.vietnamese,
-    example: state.example,
-    phonetic: state.phonetic,
-  }))
-);
+export const useFormFields = () =>
+  useFormStore(
+    useShallow((state) => ({
+      english: state.english,
+      vietnamese: state.vietnamese,
+      example: state.example,
+      phonetic: state.phonetic,
+    }))
+  );
 
-export const useFormState = () => useFormStore(
-  useShallow((state) => ({
-    isEditing: state.isEditing,
-    editingCardId: state.editingCardId,
-    cardLoaded: state.cardLoaded,
-    isSubmitting: state.isSubmitting,
-    hasUnsavedChanges: state.hasUnsavedChanges,
-  }))
-);
+export const useFormState = () =>
+  useFormStore(
+    useShallow((state) => ({
+      isEditing: state.isEditing,
+      editingCardId: state.editingCardId,
+      cardLoaded: state.cardLoaded,
+      isSubmitting: state.isSubmitting,
+      hasUnsavedChanges: state.hasUnsavedChanges,
+    }))
+  );
 
-export const useCambridgeState = () => useFormStore(
-  useShallow((state) => ({
-    info: state.cambridgeInfo,
-    isFetching: state.isFetchingCambridge,
-  }))
-);
+export const useCambridgeState = () =>
+  useFormStore(
+    useShallow((state) => ({
+      info: state.cambridgeInfo,
+      isFetching: state.isFetchingCambridge,
+    }))
+  );
 
 // Action selectors
-export const useFormActions = () => useFormStore(
-  useShallow((state) => ({
-    setField: state.setField,
-    setFields: state.setFields,
-    setCambridgeInfo: state.setCambridgeInfo,
-    setFetchingCambridge: state.setFetchingCambridge,
-    setEditing: state.setEditing,
-    setCardLoaded: state.setCardLoaded,
-    setSubmitting: state.setSubmitting,
-    setUnsavedChanges: state.setUnsavedChanges,
-    resetForm: state.resetForm,
-    populateFromCard: state.populateFromCard,
-  }))
-);
+export const useFormActions = () =>
+  useFormStore(
+    useShallow((state) => ({
+      setField: state.setField,
+      setFields: state.setFields,
+      setCambridgeInfo: state.setCambridgeInfo,
+      setFetchingCambridge: state.setFetchingCambridge,
+      setEditing: state.setEditing,
+      setCardLoaded: state.setCardLoaded,
+      setSubmitting: state.setSubmitting,
+      setUnsavedChanges: state.setUnsavedChanges,
+      resetForm: state.resetForm,
+      populateFromCard: state.populateFromCard,
+    }))
+  );
 
 const initialFormState = {
   english: '',

@@ -30,8 +30,8 @@ const VolumeButton: React.FC<VolumeButtonProps> = ({
 
   return (
     <Button
-      type='button'
-      variant='ghost'
+      type="button"
+      variant="ghost"
       size={undefined}
       className={
         `inline-flex items-center justify-center ${colorClass} ${className}`.trim() +

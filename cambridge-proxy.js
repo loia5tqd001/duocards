@@ -7,7 +7,7 @@ app.use(cors({ origin: '*' }));
 
 app.get('/api/cambridge/:word', async (req, res) => {
   const { word } = req.params;
-  
+
   try {
     const data = await scrapeCambridgeWord(word);
     res.json(data);

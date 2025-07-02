@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -9,7 +9,7 @@ export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 // Create a mock client for when Supabase is not configured
 const createMockSupabaseClient = () => {
   const mockError = new Error(
-    "Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.",
+    'Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.'
   );
 
   return {
@@ -28,6 +28,7 @@ const createMockSupabaseClient = () => {
       update: () => ({ data: null, error: mockError }),
       delete: () => ({ data: null, error: mockError }),
       upsert: () => ({ data: null, error: mockError }),
+      eq: () => ({ data: null, error: mockError }),
     }),
   };
 };
@@ -41,7 +42,7 @@ export const supabase = isSupabaseConfigured
         detectSessionInUrl: true,
       },
     })
-  : createMockSupabaseClient();
+  : (createMockSupabaseClient() as never);
 
 export type Database = {
   public: {
@@ -56,7 +57,7 @@ export type Database = {
           phonetic: string | null;
           created_at: string;
           updated_at: string;
-          status: "new" | "learning" | "learned";
+          status: 'new' | 'learning' | 'learned';
           interval: number;
           step_index: number;
           next_review: string;
@@ -73,7 +74,7 @@ export type Database = {
           phonetic?: string | null;
           created_at?: string;
           updated_at?: string;
-          status?: "new" | "learning" | "learned";
+          status?: 'new' | 'learning' | 'learned';
           interval?: number;
           step_index?: number;
           next_review?: string;
@@ -90,7 +91,7 @@ export type Database = {
           phonetic?: string | null;
           created_at?: string;
           updated_at?: string;
-          status?: "new" | "learning" | "learned";
+          status?: 'new' | 'learning' | 'learned';
           interval?: number;
           step_index?: number;
           next_review?: string;

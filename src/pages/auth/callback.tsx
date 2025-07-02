@@ -1,6 +1,6 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -9,9 +9,9 @@ export default function AuthCallback() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") {
+      if (event === 'SIGNED_IN') {
         // Redirect to home page after successful login
-        navigate("/");
+        navigate('/');
       }
     });
 
