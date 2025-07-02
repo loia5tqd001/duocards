@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthState {
@@ -24,6 +24,10 @@ export const useAuthStore = create<AuthState>()(
     isInitialized: false,
 
     signInWithGoogle: async () => {
+      if (!isSupabaseConfigured) {
+        console.warn("Supabase is not configured. Authentication unavailable.");
+        return;
+      }
       try {
         set({ isLoading: true });
         const { error } = await supabase.auth.signInWithOAuth({
@@ -42,6 +46,10 @@ export const useAuthStore = create<AuthState>()(
     },
 
     signInWithFacebook: async () => {
+      if (!isSupabaseConfigured) {
+        console.warn("Supabase is not configured. Authentication unavailable.");
+        return;
+      }
       try {
         set({ isLoading: true });
         const { error } = await supabase.auth.signInWithOAuth({
@@ -60,6 +68,10 @@ export const useAuthStore = create<AuthState>()(
     },
 
     signOut: async () => {
+      if (!isSupabaseConfigured) {
+        console.warn("Supabase is not configured. Authentication unavailable.");
+        return;
+      }
       try {
         set({ isLoading: true });
         const { error } = await supabase.auth.signOut();
@@ -73,6 +85,11 @@ export const useAuthStore = create<AuthState>()(
     },
 
     initialize: async () => {
+      if (!isSupabaseConfigured) {
+        console.warn("Supabase is not configured. Authentication unavailable.");
+        set({ isInitialized: true });
+        return;
+      }
       try {
         // Get initial session
         const {

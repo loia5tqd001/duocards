@@ -1,4 +1,4 @@
-import { supabase, type Database } from "./supabase";
+import { supabase, isSupabaseConfigured, type Database } from "./supabase";
 import type { Card } from "./utils";
 import type { User } from "@supabase/supabase-js";
 
@@ -68,6 +68,11 @@ export class StorageManager {
 
   // Upload local cards to Supabase (when user first logs in)
   async uploadLocalCards(cards: Card[], user: User): Promise<SyncResult> {
+    if (!isSupabaseConfigured) {
+      console.warn("Supabase not configured, skipping upload");
+      return { success: true, conflictCount: 0, updatedCount: 0 };
+    }
+
     try {
       if (this.syncInProgress) {
         return {
@@ -117,6 +122,11 @@ export class StorageManager {
   async downloadCards(
     user: User,
   ): Promise<{ cards: Card[]; success: boolean; error?: string }> {
+    if (!isSupabaseConfigured) {
+      console.warn("Supabase not configured, returning empty cards");
+      return { cards: [], success: true };
+    }
+
     try {
       const { data, error } = await supabase
         .from("cards")
@@ -141,6 +151,11 @@ export class StorageManager {
 
   // Sync local and remote cards (handles conflicts)
   async syncCards(localCards: Card[], user: User): Promise<SyncResult> {
+    if (!isSupabaseConfigured) {
+      console.warn("Supabase not configured, skipping sync");
+      return { success: true, conflictCount: 0, updatedCount: 0 };
+    }
+
     try {
       if (this.syncInProgress) {
         return {
@@ -225,6 +240,11 @@ export class StorageManager {
 
   // Save single card to Supabase (optimistic updates)
   async saveCard(card: Card, user: User): Promise<boolean> {
+    if (!isSupabaseConfigured) {
+      console.warn("Supabase not configured, skipping save");
+      return true;
+    }
+
     try {
       const supabaseCard = this.cardToSupabase(card, user.id);
 
@@ -242,6 +262,11 @@ export class StorageManager {
 
   // Delete card from Supabase
   async deleteCard(cardId: string, user: User): Promise<boolean> {
+    if (!isSupabaseConfigured) {
+      console.warn("Supabase not configured, skipping delete");
+      return true;
+    }
+
     try {
       const { error } = await supabase
         .from("cards")

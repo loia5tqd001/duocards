@@ -1,11 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/authStore";
 import { useSyncStatus } from "@/store/cardsStore";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { Link } from "react-router-dom";
 
 export function LoginButton() {
   const { user, isLoading, signOut } = useAuthStore();
   const { isSyncing } = useSyncStatus();
+
+  // Hide login button if Supabase is not configured
+  if (!isSupabaseConfigured) {
+    return null;
+  }
 
   if (user) {
     return (

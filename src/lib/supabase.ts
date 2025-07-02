@@ -3,13 +3,45 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-});
+// Create a flag to track if Supabase is properly configured
+export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
+
+// Create a mock client for when Supabase is not configured
+const createMockSupabaseClient = () => {
+  const mockError = new Error(
+    "Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.",
+  );
+
+  return {
+    auth: {
+      signInWithOAuth: async () => ({ data: null, error: mockError }),
+      signOut: async () => ({ data: null, error: mockError }),
+      getSession: async () => ({ data: { session: null }, error: mockError }),
+      onAuthStateChange: () => ({
+        data: { subscription: null },
+        error: mockError,
+      }),
+    },
+    from: () => ({
+      select: () => ({ data: null, error: mockError }),
+      insert: () => ({ data: null, error: mockError }),
+      update: () => ({ data: null, error: mockError }),
+      delete: () => ({ data: null, error: mockError }),
+      upsert: () => ({ data: null, error: mockError }),
+    }),
+  };
+};
+
+// Export the client - either real or mock
+export const supabase = isSupabaseConfigured
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+      },
+    })
+  : createMockSupabaseClient();
 
 export type Database = {
   public: {

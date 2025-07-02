@@ -21,9 +21,7 @@ export default function PageContainer({
     >
       {/* Header */}
       <div className="w-full flex items-center justify-between mb-6 min-h-[48px]">
-        <div className="w-10 h-10 flex items-center justify-start">
-          {leftButton}
-        </div>
+        <div className="flex items-center justify-start">{leftButton}</div>
         <div className="flex-1 flex items-center justify-center gap-2">
           <span className="font-bold text-2xl tracking-tight">{title}</span>
         </div>

@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useAuthStore } from "@/store/authStore";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { Loader2 } from "lucide-react";
 
 const GoogleIcon = () => (
@@ -54,6 +55,12 @@ export default function Login() {
     useAuthStore();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isFacebookLoading, setIsFacebookLoading] = useState(false);
+
+  // Redirect to home if Supabase is not configured
+  if (!isSupabaseConfigured) {
+    navigate("/");
+    return null;
+  }
 
   // Redirect if already logged in
   if (user && !isLoading) {
@@ -119,10 +126,21 @@ export default function Login() {
           </CardHeader>
 
           <CardContent className="space-y-4">
+            {!isSupabaseConfigured && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                <p className="text-sm text-amber-800">
+                  Authentication is currently unavailable. You can still use the
+                  app in local mode.
+                </p>
+              </div>
+            )}
+
             <Button
               onClick={handleGoogleSignIn}
-              disabled={isGoogleLoading || isFacebookLoading}
-              className="w-full h-12 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:shadow-md transition-all duration-200 font-medium"
+              disabled={
+                !isSupabaseConfigured || isGoogleLoading || isFacebookLoading
+              }
+              className="w-full h-12 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:shadow-md transition-all duration-200 font-medium disabled:opacity-50"
               variant="outline"
             >
               {isGoogleLoading ? (
@@ -137,8 +155,10 @@ export default function Login() {
 
             <Button
               onClick={handleFacebookSignIn}
-              disabled={isGoogleLoading || isFacebookLoading}
-              className="w-full h-12 bg-white text-[#1877F2] border border-gray-300 hover:bg-gray-50 hover:shadow-md transition-all duration-200 font-medium"
+              disabled={
+                !isSupabaseConfigured || isGoogleLoading || isFacebookLoading
+              }
+              className="w-full h-12 bg-white text-[#1877F2] border border-gray-300 hover:bg-gray-50 hover:shadow-md transition-all duration-200 font-medium disabled:opacity-50"
               variant="outline"
             >
               {isFacebookLoading ? (
