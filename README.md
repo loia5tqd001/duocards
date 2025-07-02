@@ -286,3 +286,14 @@ This project uses [Prettier](https://prettier.io/), [lint-staged](https://github
 - You can **edit** any flashcard by clicking the pencil icon on the Home screen. This opens the edit form, pre-filled with the card's data.
 - You can **delete** any flashcard by clicking the trash icon on the Home screen. You will be asked to confirm before deletion.
 - The add card form is also used for editing cards. The edit route is `/edit/:id`.
+
+## Notification System
+
+A global notification (toast) system is implemented using Zustand and a Notification component. To show a notification, use the `showNotification` action from the UI store:
+
+```ts
+const { showNotification } = useUIActions();
+showNotification('success', 'Card added successfully!');
+```
+
+Notifications will appear at the top of the screen and auto-hide after a few seconds. You can also manually dismiss them.

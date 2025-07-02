@@ -8,6 +8,7 @@ import { renderWithRouter } from '../test-utils';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useCardsStore } from '../../store/cardsStore';
+import { useUIStore } from '../../store/uiStore';
 
 // Import main app components
 import App from '../../App';
@@ -66,6 +67,15 @@ vi.mock('../../api/cambridge', () => ({
   fetchCambridgeInfo: vi.fn().mockResolvedValue(null),
 }));
 
+// Mock the environment variable to disable API calls
+Object.defineProperty(import.meta, 'env', {
+  value: {
+    ...import.meta.env,
+    VITE_API_URL: undefined,
+  },
+  writable: true,
+});
+
 // Mock fetch to prevent actual network calls to Cambridge API
 global.fetch = vi.fn(() =>
   Promise.resolve({
@@ -86,7 +96,7 @@ describe('App Integration without Supabase', () => {
     localStorage.clear();
     vi.clearAllMocks();
 
-    // Reset fetch mock
+    // Reset fetch mock - make it resolve immediately
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
@@ -421,6 +431,36 @@ describe('App Integration without Supabase', () => {
       await waitFor(() => {
         expect(
           screen.getByText(new RegExp(`${expectedCount} cards?`, 'i'))
+        ).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Notification system', () => {
+    it('should show notification functionality when cards are managed', async () => {
+      renderWithRouter(<App />);
+
+      // Test that the notification system works by adding a card through the store
+      // This tests the integration between the store and notification system
+      const { addCard } = useCardsStore.getState();
+      const { showNotification } = useUIStore.getState();
+
+      // Add a card and show a notification (simulating what happens in the real app)
+      addCard({
+        english: 'notification',
+        vietnamese: 'thông báo',
+        example: 'This shows a notification.',
+        phonetic: '/ˌnoʊtɪfɪˈkeɪʃən/',
+      });
+
+      // Manually trigger the success notification (as the real AddCard component does)
+      showNotification('success', 'Card added successfully!');
+
+      // Wait for notification to appear in the UI
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+        expect(
+          screen.getByText('Card added successfully!')
         ).toBeInTheDocument();
       });
     });

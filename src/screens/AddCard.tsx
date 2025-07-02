@@ -193,7 +193,6 @@ export default function AddOrEditCard() {
             phonetic: phonetic.trim(),
           });
           showNotification('success', 'Card updated successfully!');
-          navigate('/');
         }
       } else {
         // Add new card
@@ -226,7 +225,6 @@ export default function AddOrEditCard() {
     updateCard,
     addCard,
     showNotification,
-    navigate,
     resetForm,
     info,
     setSubmitting,
