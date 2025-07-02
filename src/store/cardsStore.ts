@@ -103,7 +103,7 @@ export const useCardsStore = create<CardsState>()(
       immer((set) => ({
         cards: [] as Card[],
         sessionQueue: [] as string[],
-        isSyncing: false,
+        isSyncing: false as boolean,
         lastSyncTime: null,
         stats: { new: 0, learning: 0, learned: 0, due: 0, total: 0 },
         dueCards: [] as Card[],

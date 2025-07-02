@@ -15,7 +15,8 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "format": "prettier --write .",
-    "check": "pnpm lint & pnpm format & pnpm test:run",
+    "typecheck": "tsc --noEmit",
+    "check": "pnpm lint & pnpm format & pnpm test:run & pnpm typecheck",
     "prepare": "husky install"
   },
   "dependencies": {
