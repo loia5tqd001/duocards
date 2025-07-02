@@ -65,7 +65,7 @@ const Notification: React.FC = () => {
 
   return (
     <div
-      className={`fixed z-50 left-1/2 top-4 -translate-x-1/2 min-w-[180px] max-w-xs px-3 py-2 rounded-lg border shadow-md flex items-center gap-2 transition-all duration-300
+      className={`fixed z-50 left-1/2 top-4 -translate-x-1/2 min-w-[180px] max-w-[90vw] sm:max-w-xs px-3 py-2 rounded-lg border shadow-md flex items-center gap-2 transition-all duration-300
         ${style}
         ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'}
       `}
@@ -74,7 +74,7 @@ const Notification: React.FC = () => {
       style={{ boxShadow: '0 4px 16px 0 rgba(0,0,0,0.08)' }}
     >
       <span className="flex-shrink-0">{icon}</span>
-      <span className="flex-1 text-sm font-medium leading-tight">
+      <span className="flex-1 text-sm font-medium leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
         {message}
       </span>
       <button
